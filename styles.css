@@ -351,3 +351,77 @@ input:focus, select:focus, textarea:focus {
     max-width: 400px;
     margin-bottom: 50px; /* Чтобы не перекрывалась клавиатурой телефона */
 }
+/* --- СТИЛИ ДЛЯ РИТМА (AURA x FLO) --- */
+.horizontal-calendar {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding: 10px 0 20px 0;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+}
+.horizontal-calendar::-webkit-scrollbar { display: none; }
+
+.calendar-day {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 55px;
+    height: 75px;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 20px;
+    scroll-snap-align: center;
+    transition: all 0.3s;
+}
+
+/* Сегодняшний день (Большой кружок) */
+.calendar-day.today {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.5);
+    transform: scale(1.05);
+}
+
+/* Дни месячных (Розовые/Красные) */
+.calendar-day.period {
+    background: rgba(236, 72, 153, 0.2);
+    border-color: rgba(236, 72, 153, 0.5);
+}
+.calendar-day.period .day-number { color: #EC4899; }
+
+/* Дни овуляции (Бирюзовые) */
+.calendar-day.ovulation {
+    background: rgba(45, 212, 191, 0.15);
+    border-color: rgba(45, 212, 191, 0.5);
+}
+.calendar-day.ovulation .day-number { color: #2DD4BF; }
+
+.day-name { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+.day-number { font-size: 20px; font-weight: 700; color: white; margin-top: 4px; }
+
+/* Большой круг по центру */
+.cycle-circle-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0 30px 0;
+}
+.cycle-circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    /* Красивый градиентный круг */
+    background: radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08), transparent 70%);
+    border: 3px solid rgba(236, 72, 153, 0.4); 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 50px rgba(236, 72, 153, 0.15);
+    text-align: center;
+}
+.cycle-value { font-size: 60px; font-weight: 800; color: white; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
+.cycle-label { font-size: 15px; color: var(--text-muted); width: 80%; line-height: 1.3; }
+
+.cycle-row { margin-bottom: 12px; }
+}
