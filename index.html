@@ -55,9 +55,32 @@
 
     <div id="calendar-screen" class="screen hidden main-content">
         <h1 class="main-title">Твой <span class="text-highlight">Ритм</span></h1>
+        
         <div class="card">
-            <h3>🌸 Фаза цикла</h3>
-            <p>Здесь будет расчет твоей фазы и корректировка калорий (+200 ккал для лютеиновой фазы).</p>
+            <h3>🌸 Настройка цикла</h3>
+            <div class="form-container" style="margin-top: 15px;">
+                <div class="form-group">
+                    <label>Первый день последних месячных</label>
+                    <input type="date" id="cycle-start" style="color-scheme: dark;">
+                </div>
+                <div class="form-group">
+                    <label>Длина цикла (дней)</label>
+                    <input type="number" id="cycle-duration" placeholder="Например, 28">
+                </div>
+            </div>
+            <button id="btn-save-cycle" class="btn-primary btn-small">Рассчитать фазу</button>
+        </div>
+
+        <div id="phase-result" class="card hidden">
+            <div class="card-header">
+                <h3 id="phase-name">Фаза: ...</h3>
+                <span class="status-icon">✨</span>
+            </div>
+            <p id="phase-desc" style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">...</p>
+            <div id="phase-advice" class="mood-badge hidden" style="margin-top: 15px; background: rgba(59, 130, 246, 0.2); border-color: #3B82F6;">
+                <span class="mood-dot" style="background-color: #3B82F6; box-shadow: 0 0 10px #3B82F6;"></span> 
+                <span id="advice-text">+200 ккал сегодня. Твоему телу нужно больше энергии.</span>
+            </div>
         </div>
     </div>
 
