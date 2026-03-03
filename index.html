@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AURA</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="bg-glow"></div>
+
+    <div id="registration-screen" class="screen">
+        <div class="brand-header">
+            <span class="logo-icon">✨</span><span class="logo-text">AURA</span>
+        </div>
+        <h1 class="main-title">Создай свою<br><span class="text-highlight">Ауру.</span></h1>
+        <p class="subtitle">Персонализированный план для твоего тела.</p>
+        
+        <div class="form-container">
+            <div class="form-group"><label>Рост (см)</label><input type="number" id="height" placeholder="165"></div>
+            <div class="form-group"><label>Текущий вес (кг)</label><input type="number" id="weight" placeholder="65"></div>
+            <div class="form-group"><label>Цель (кг)</label><input type="number" id="target-weight" placeholder="55"></div>
+            <div class="form-group">
+                <label>Протокол питания</label>
+                <select id="diet-protocol">
+                    <option value="balanced">Сбалансированный</option>
+                    <option value="keto">Кето</option>
+                    <option value="lowcarb">LCHF</option>
+                </select>
+            </div>
+        </div>
+        <button id="btn-register" class="btn-primary">Продолжить</button>
+    </div>
+
+    <div id="main-screen" class="screen hidden main-content">
+        <div class="header">
+            <h2 id="greeting-name">Привет!</h2>
+            <div class="settings-icon">⚙️</div>
+        </div>
+        <div class="avatar-container">
+            <div id="avatar" class="avatar-placeholder"><span class="avatar-emoji">🧘‍♀️</span></div>
+            <div class="mood-badge"><span class="mood-dot"></span> Спокойствие</div>
+        </div>
+        <div class="card water-tracker">
+            <div class="card-header">
+                <h3>💧 Гидратация</h3><span class="status-icon">✓</span>
+            </div>
+            <div class="water-progress">
+                <p class="water-info"><span id="water-current" class="highlight-number">0</span> / <span id="water-goal">0</span> мл</p>
+            </div>
+            <button id="btn-water" class="btn-primary btn-small">Выпить 250 мл</button>
+        </div>
+    </div>
+
+    <div id="calendar-screen" class="screen hidden main-content">
+        <h1 class="main-title">Твой <span class="text-highlight">Ритм</span></h1>
+        <div class="card">
+            <h3>🌸 Фаза цикла</h3>
+            <p>Здесь будет расчет твоей фазы и корректировка калорий (+200 ккал для лютеиновой фазы).</p>
+        </div>
+    </div>
+
+    <div id="scanner-screen" class="screen hidden main-content">
+        <h1 class="main-title">Aura <span class="text-highlight">Lens</span></h1>
+        <div class="card" style="text-align: center;">
+            <div class="avatar-placeholder" style="margin: 0 auto 20px;">📷</div>
+            <p>Наведи камеру на еду, и ИИ рассчитает макронутриенты.</p>
+            <button class="btn-primary btn-small">Открыть камеру</button>
+        </div>
+    </div>
+
+    <div id="journal-screen" class="screen hidden main-content">
+        <h1 class="main-title">Дневник <span class="text-highlight">Эмоций</span></h1>
+        <div class="card">
+            <h3>📖 Заметки</h3>
+            <textarea placeholder="Как ты себя чувствуешь сегодня?" style="width: 100%; margin-top: 10px;"></textarea>
+            <button class="btn-primary btn-small">Сохранить</button>
+        </div>
+    </div>
+
+    <nav id="bottom-nav" class="bottom-nav hidden">
+        <button class="nav-item active" data-target="main-screen">
+            <span class="nav-icon">🪐</span>
+            <span class="nav-text">Орбита</span>
+        </button>
+        <button class="nav-item" data-target="calendar-screen">
+            <span class="nav-icon">🌸</span>
+            <span class="nav-text">Ритм</span>
+        </button>
+        <button class="nav-item" data-target="scanner-screen">
+            <span class="nav-icon">📷</span>
+            <span class="nav-text">Lens</span>
+        </button>
+        <button class="nav-item" data-target="journal-screen">
+            <span class="nav-icon">📖</span>
+            <span class="nav-text">Дневник</span>
+        </button>
+    </nav>
+
+    <script src="script.js"></script>
+</body>
+</html>
