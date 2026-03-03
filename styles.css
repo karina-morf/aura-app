@@ -424,4 +424,3 @@ input:focus, select:focus, textarea:focus {
 .cycle-label { font-size: 15px; color: var(--text-muted); width: 80%; line-height: 1.3; }
 
 .cycle-row { margin-bottom: 12px; }
-}
