@@ -7,18 +7,24 @@ const btnRegister = document.getElementById('btn-register');
 const btnWater = document.getElementById('btn-water');
 const btnSaveCycle = document.getElementById('btn-save-cycle');
 
+// Элементы активности
+const activityModal = document.getElementById('activity-modal');
+const btnOpenActivity = document.getElementById('btn-open-activity');
+const btnCloseActivity = document.getElementById('btn-close-activity');
+const btnSaveActivity = document.getElementById('btn-save-activity');
+
 const navItems = document.querySelectorAll('.nav-item');
 const allScreens = document.querySelectorAll('.main-content');
 
-let userData = { weight: 0, waterGoal: 0, waterCurrent: 0 };
+let userData = { weight: 0, waterGoal: 0, waterCurrent: 0, stepsToday: 0, distanceToday: 0, caloriesToday: 0 };
 
-// ⚠️ ВСТАВЬ СВОЮ ССЫЛКУ СЮДА ⚠️
+// ⚠️ Твоя ссылка (сохранена) ⚠️
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwsLFa7b3cwAbh1YpVMYo4nLjyfkOuDKAAaLRQoAsQiRoMwdYwjW3QwVDGGFE4FVu_I/exec"; 
 
 const currentUserId = tg.initDataUnsafe?.user?.id || 'test_user_' + Math.floor(Math.random() * 1000);
 regScreen.classList.add('hidden');
 
-// --- Функция отправки запросов (чтобы не писать fetch каждый раз) ---
+// --- Функция отправки запросов ---
 function sendToServer(payload) {
     return fetch(GOOGLE_API_URL, {
         method: 'POST',
@@ -34,22 +40,29 @@ function checkUser() {
         if (data.exists) {
             userData.weight = parseFloat(data.userData.weight);
             userData.waterGoal = userData.weight * 35;
-            // Подтягиваем выпитую сегодня воду из базы!
             userData.waterCurrent = data.userData.waterToday || 0; 
+            
+            // Подтягиваем активность из базы!
+            userData.stepsToday = data.userData.stepsToday || 0;
+            userData.distanceToday = data.userData.distanceToday || 0;
+            userData.caloriesToday = data.userData.caloriesToday || 0;
             
             document.getElementById('water-goal').innerText = userData.waterGoal;
             document.getElementById('water-current').innerText = userData.waterCurrent;
             document.getElementById('greeting-name').innerText = `Привет, ${data.userData.nickname}!`;
 
-            // Если цикл уже был настроен, подставляем даты
+            // Обновляем дашборд активности на экране
+            document.getElementById('stat-steps').innerText = userData.stepsToday;
+            document.getElementById('stat-distance').innerText = userData.distanceToday;
+            document.getElementById('stat-kcal').innerText = userData.caloriesToday;
+
             if (data.userData.cycleStart && data.userData.cycleDuration) {
-                // Преобразуем дату из формата базы (ISO) в формат поля input (YYYY-MM-DD)
                 const dateObj = new Date(data.userData.cycleStart);
                 const localDateStr = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
                 
                 document.getElementById('cycle-start').value = localDateStr;
                 document.getElementById('cycle-duration').value = data.userData.cycleDuration;
-                calculatePhase(); // Сразу рассчитываем фазу
+                calculatePhase(); 
             }
 
             document.getElementById('main-screen').classList.remove('hidden');
@@ -63,7 +76,6 @@ checkUser();
 
 // --- 2. РЕГИСТРАЦИЯ ---
 btnRegister.addEventListener('click', () => {
-    // ... твой код регистрации (он не менялся) ...
     const heightInput = document.getElementById('height').value;
     const weightInput = document.getElementById('weight').value;
     const targetWeightInput = document.getElementById('target-weight').value;
@@ -92,14 +104,13 @@ btnRegister.addEventListener('click', () => {
     });
 });
 
-// --- 3. ТРЕКЕР ВОДЫ (С сохранением!) ---
+// --- 3. ТРЕКЕР ВОДЫ ---
 btnWater.addEventListener('click', () => {
     userData.waterCurrent += 250;
     document.getElementById('water-current').innerText = userData.waterCurrent;
     tg.HapticFeedback.impactOccurred('light');
     if (userData.waterCurrent === userData.waterGoal) tg.HapticFeedback.notificationOccurred('success');
 
-    // Фоном отправляем данные в базу (пользователь не ждет загрузки)
     sendToServer({
         action: "log_water",
         userId: currentUserId,
@@ -107,28 +118,67 @@ btnWater.addEventListener('click', () => {
     }).catch(err => console.error("Ошибка сохранения воды:", err));
 });
 
-// --- 4. ЖЕНСКИЙ КАЛЕНДАРЬ И РАСЧЕТ ФАЗ ---
+// --- 4. ТРЕКЕР АКТИВНОСТИ (НОВОЕ) ---
+btnOpenActivity.addEventListener('click', () => {
+    // Подставляем текущие значения в поля модалки
+    document.getElementById('input-steps').value = userData.stepsToday || '';
+    document.getElementById('input-distance').value = userData.distanceToday || '';
+    document.getElementById('input-kcal').value = userData.caloriesToday || '';
+    activityModal.classList.remove('hidden');
+    tg.HapticFeedback.impactOccurred('light');
+});
+
+btnCloseActivity.addEventListener('click', () => {
+    activityModal.classList.add('hidden');
+});
+
+btnSaveActivity.addEventListener('click', () => {
+    const steps = parseInt(document.getElementById('input-steps').value) || 0;
+    const distance = parseFloat(document.getElementById('input-distance').value) || 0;
+    const calories = parseInt(document.getElementById('input-kcal').value) || 0;
+
+    // Обновляем локальные данные
+    userData.stepsToday = steps;
+    userData.distanceToday = distance;
+    userData.caloriesToday = calories;
+
+    // Обновляем интерфейс
+    document.getElementById('stat-steps').innerText = steps;
+    document.getElementById('stat-distance').innerText = distance;
+    document.getElementById('stat-kcal').innerText = calories;
+
+    activityModal.classList.add('hidden');
+    tg.HapticFeedback.notificationOccurred('success');
+
+    // Отправляем в базу
+    sendToServer({
+        action: "log_activity",
+        userId: currentUserId,
+        steps: steps,
+        distance: distance,
+        calories: calories
+    }).catch(err => console.error("Ошибка сохранения активности:", err));
+});
+
+// --- 5. ЖЕНСКИЙ КАЛЕНДАРЬ ---
 function calculatePhase() {
     const startDate = document.getElementById('cycle-start').value;
     const duration = parseInt(document.getElementById('cycle-duration').value);
 
-    if (!startDate || !duration) return; // Если данных нет, ничего не делаем
+    if (!startDate || !duration) return; 
 
     const start = new Date(startDate);
     const today = new Date();
     
-    // Считаем разницу в днях между сегодня и началом цикла
     const diffTime = Math.abs(today - start);
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // Вычисляем текущий день цикла (от 1 до duration)
     const currentDayOfCycle = (diffDays % duration) + 1;
 
     let phaseName = "";
     let phaseDesc = "";
     let isLuteal = false;
 
-    // Простая логика определения фаз из ТЗ:
     if (currentDayOfCycle >= 1 && currentDayOfCycle <= 5) {
         phaseName = "Менструальная фаза 🩸";
         phaseDesc = "Время очищения и отдыха. Будь бережна к себе, выбирай легкие прогулки вместо тяжелых тренировок.";
@@ -141,15 +191,13 @@ function calculatePhase() {
     } else {
         phaseName = "Лютеиновая фаза 🍂";
         phaseDesc = "Энергия идет на спад. Могут появиться перепады настроения. Снизь темп и добавь ухода за собой.";
-        isLuteal = true; // Триггер для добавления +200 ккал!
+        isLuteal = true; 
     }
 
-    // Обновляем интерфейс
     document.getElementById('phase-name').innerText = phaseName;
     document.getElementById('phase-desc').innerText = phaseDesc;
     document.getElementById('phase-result').classList.remove('hidden');
 
-    // Показываем или прячем совет про +200 ккал
     const adviceBlock = document.getElementById('phase-advice');
     if (isLuteal) {
         adviceBlock.classList.remove('hidden');
@@ -158,7 +206,6 @@ function calculatePhase() {
     }
 }
 
-// Кнопка сохранения цикла
 btnSaveCycle.addEventListener('click', () => {
     const startDate = document.getElementById('cycle-start').value;
     const duration = document.getElementById('cycle-duration').value;
@@ -171,7 +218,6 @@ btnSaveCycle.addEventListener('click', () => {
     calculatePhase();
     tg.HapticFeedback.notificationOccurred('success');
 
-    // Сохраняем в базу данных
     const originalText = btnSaveCycle.innerText;
     btnSaveCycle.innerText = "Сохраняем...";
     
@@ -185,7 +231,7 @@ btnSaveCycle.addEventListener('click', () => {
     });
 });
 
-// --- 5. МЕНЮ НАВИГАЦИИ ---
+// --- 6. МЕНЮ НАВИГАЦИИ ---
 navItems.forEach(item => {
     item.addEventListener('click', () => {
         navItems.forEach(nav => nav.classList.remove('active'));

@@ -20,7 +20,7 @@ body {
     position: relative;
 }
 
-/* Красивое фоновое свечение сверху (как на картинках) */
+/* Красивое фоновое свечение сверху */
 .bg-glow {
     position: fixed;
     top: -100px;
@@ -62,7 +62,7 @@ body {
 }
 
 .text-highlight {
-    color: #3B82F6; /* Синий акцент в текровке */
+    color: #3B82F6; 
 }
 
 .subtitle {
@@ -86,7 +86,7 @@ body {
     display: block;
 }
 
-input, select {
+input, select, textarea {
     width: 100%;
     box-sizing: border-box;
     padding: 16px;
@@ -97,14 +97,14 @@ input, select {
     color: var(--text-main);
     outline: none;
     transition: all 0.3s;
-    -webkit-appearance: none; /* Убираем стандартный стиль на iPhone */
+    -webkit-appearance: none;
 }
 
-input::placeholder {
+input::placeholder, textarea::placeholder {
     color: #6B7280;
 }
 
-input:focus, select:focus {
+input:focus, select:focus, textarea:focus {
     border-color: #3B82F6;
     background-color: rgba(255, 255, 255, 0.08);
 }
@@ -115,7 +115,7 @@ input:focus, select:focus {
     padding: 18px;
     background: var(--primary-gradient);
     border: none;
-    border-radius: 30px; /* Округлая кнопка как на референсе */
+    border-radius: 30px; 
     font-size: 18px;
     font-weight: 600;
     color: white;
@@ -208,7 +208,7 @@ input:focus, select:focus {
 .mood-dot {
     width: 8px;
     height: 8px;
-    background-color: #10B981; /* Зеленая точка - все ок */
+    background-color: #10B981; 
     border-radius: 50%;
     box-shadow: 0 0 10px #10B981;
 }
@@ -233,12 +233,13 @@ input:focus, select:focus {
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
-/* Отступ снизу, чтобы контент не прятался под меню */
+
+/* Отступ снизу для меню */
 .main-content {
     padding-bottom: 90px;
 }
 
-/* Дизайн нижнего меню (эффект матового стекла) */
+/* Дизайн нижнего меню */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -250,7 +251,7 @@ input:focus, select:focus {
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-around;
-    padding: 12px 0 calc(12px + env(safe-area-inset-bottom)); /* Поддержка iPhone */
+    padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
     z-index: 1000;
 }
 
@@ -269,7 +270,7 @@ input:focus, select:focus {
 
 .nav-icon {
     font-size: 24px;
-    filter: grayscale(100%) opacity(0.6); /* Иконки серые, когда неактивны */
+    filter: grayscale(100%) opacity(0.6);
     transition: all 0.3s;
 }
 
@@ -278,12 +279,75 @@ input:focus, select:focus {
     font-weight: 500;
 }
 
-/* Стиль для активной (выбранной) вкладки */
 .nav-item.active {
     color: #3B82F6;
 }
 
 .nav-item.active .nav-icon {
-    filter: grayscale(0%) opacity(1); /* Иконка становится цветной */
-    transform: translateY(-2px); /* Слегка приподнимается */
+    filter: grayscale(0%) opacity(1);
+    transform: translateY(-2px);
+}
+
+/* --- НОВЫЕ СТИЛИ ДЛЯ АКТИВНОСТИ И ВСПЛЫВАЮЩИХ ОКОН --- */
+
+/* Дашборд активности */
+.activity-grid {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.activity-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.03);
+    padding: 12px;
+    border-radius: 16px;
+    width: 28%;
+}
+
+.activity-icon { font-size: 24px; margin-bottom: 5px; }
+.activity-data { display: flex; flex-direction: column; align-items: center; }
+.activity-data .highlight-number { font-size: 20px; color: white; }
+.activity-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+/* Круглая кнопка с плюсиком */
+.btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.btn-icon:active {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+/* Модальное окно (всплывашка) */
+.modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(5px);
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.3s;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 50px; /* Чтобы не перекрывалась клавиатурой телефона */
 }
