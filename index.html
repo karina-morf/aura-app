@@ -101,7 +101,10 @@
                 </div>
             </div>
 
-            <button id="btn-log-period" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white; margin-top: 0; margin-bottom: 20px;">Отметить месячные</button>
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button id="btn-log-period" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white; margin-top: 0;">Отметить месячные</button>
+                <div id="btn-edit-cycle" style="margin-top: 15px; color: var(--text-muted); font-size: 14px; text-decoration: underline; cursor: pointer; padding: 10px;">✏️ Изменить даты цикла</div>
+            </div>
 
             <div class="card" style="margin-bottom: 20px;">
                 <h3 style="margin-bottom: 10px;">Как ты себя чувствуешь?</h3>
@@ -208,7 +211,22 @@
                 </div>
         </div>
     </div>
-
+<div id="edit-cycle-modal" class="modal hidden">
+        <div class="modal-content card">
+            <div class="card-header">
+                <h3>Изменить дату</h3>
+                <button id="btn-close-edit-cycle" class="btn-icon">✖</button>
+            </div>
+            <div class="form-container">
+                <p style="font-size: 13px; color: var(--text-muted); margin-top: -10px;">ИИ помнит твою длину цикла. Просто укажи верный первый день месячных.</p>
+                <div class="form-group">
+                    <label>Первый день месячных</label>
+                    <input type="date" id="input-edit-cycle-start" style="color-scheme: dark;">
+                </div>
+            </div>
+            <button id="btn-save-edit-cycle" class="btn-primary">Сохранить</button>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

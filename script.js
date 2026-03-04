@@ -325,26 +325,67 @@ document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     });
 });
 
-// --- КНОПКА "ОТМЕТИТЬ МЕСЯЧНЫЕ" ---
+/// --- КНОПКА "ОТМЕТИТЬ МЕСЯЧНЫЕ" ---
 document.getElementById('btn-log-period').addEventListener('click', () => {
-    // Устанавливаем начало цикла на сегодня
-    const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-    const btn = document.getElementById('btn-log-period');
-    
-    tg.HapticFeedback.impactOccurred('medium');
-    btn.innerText = "Обновляем...";
+    // Вызываем нативное окно подтверждения Telegram
+    tg.showConfirm("Отметить сегодняшний день как первый день месячных?", function(result) {
+        if (result) {
+            // Если пользователь нажал "ОК"
+            const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+            const btn = document.getElementById('btn-log-period');
+            
+            tg.HapticFeedback.impactOccurred('medium');
+            btn.innerText = "Обновляем...";
 
-    // Используем средние значения, если они есть, или стандартные
+            const cDur = userData.cycleDuration || 28;
+            const pDur = userData.periodDuration || 5;
+
+            sendToServer({
+                action: "update_cycle", userId: currentUserId, cycleStart: todayStr, 
+                cycleDuration: cDur, periodDuration: pDur
+            }).then(() => {
+                btn.innerText = "Отметить месячные";
+                userData.cycleStart = todayStr;
+                renderRhythmDashboard(todayStr, cDur, pDur);
+            });
+        }
+    });
+});
+
+// --- КНОПКА "ИЗМЕНИТЬ ДАТЫ" (БЫСТРОЕ РЕДАКТИРОВАНИЕ) ---
+const editCycleModal = document.getElementById('edit-cycle-modal');
+
+document.getElementById('btn-edit-cycle').addEventListener('click', () => {
+    // Подставляем текущую дату из базы в поле ввода
+    document.getElementById('input-edit-cycle-start').value = userData.cycleStart || '';
+    editCycleModal.classList.remove('hidden');
+    tg.HapticFeedback.impactOccurred('light');
+});
+
+document.getElementById('btn-close-edit-cycle').addEventListener('click', () => {
+    editCycleModal.classList.add('hidden');
+});
+
+document.getElementById('btn-save-edit-cycle').addEventListener('click', () => {
+    const newDate = document.getElementById('input-edit-cycle-start').value;
+    if(!newDate) return tg.showAlert("Выбери верную дату!");
+
+    const btn = document.getElementById('btn-save-edit-cycle');
+    btn.innerText = "Сохраняем...";
+
+    // Берем УЖЕ сохраненные средние значения длины цикла, чтобы не просить их заново!
     const cDur = userData.cycleDuration || 28;
     const pDur = userData.periodDuration || 5;
 
     sendToServer({
-        action: "update_cycle", userId: currentUserId, cycleStart: todayStr, 
+        action: "update_cycle", userId: currentUserId, cycleStart: newDate, 
         cycleDuration: cDur, periodDuration: pDur
     }).then(() => {
-        btn.innerText = "Отметить месячные";
-        userData.cycleStart = todayStr;
-        renderRhythmDashboard(todayStr, cDur, pDur);
+        btn.innerText = "Сохранить";
+        editCycleModal.classList.add('hidden');
+        userData.cycleStart = newDate;
+        renderRhythmDashboard(newDate, cDur, pDur); // Перерисовываем красивый дашборд
+        tg.HapticFeedback.notificationOccurred('success');
     });
 });
 
