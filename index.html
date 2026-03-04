@@ -154,12 +154,49 @@
         </div>
     </div>
 
-    <div id="scanner-screen" class="screen hidden main-content">
-        <h1 class="main-title">Aura <span class="text-highlight">Фокус</span></h1>
-        <div class="card" style="text-align: center;">
-            <div class="avatar-placeholder" style="margin: 0 auto 20px;">📷</div>
-            <p>Наведи камеру на їжу, і ШІ розрахує макронутрієнти.</p>
-            <button class="btn-primary btn-small">Відкрити камеру</button>
+<div id="scanner-screen" class="screen hidden main-content">
+        <div class="header" style="margin-bottom: 10px;">
+            <h1 class="main-title">Aura <span class="text-highlight">Фокус</span></h1>
+        </div>
+
+        <div id="scanner-upload-area" class="card" style="text-align: center; padding: 40px 20px; border: 2px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05);">
+            <div class="avatar-placeholder" style="margin: 0 auto 20px; width: 80px; height: 80px; font-size: 30px; background: rgba(59, 130, 246, 0.2); border: none;">📸</div>
+            <h3 style="margin-bottom: 10px;">Що у тебе в тарілці?</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Сфотографуй їжу, і ШІ автоматично розрахує калорії та макроси.</p>
+            
+            <label for="camera-input" class="btn-primary" style="display: inline-block; padding: 15px 30px; border-radius: 30px; font-size: 16px; cursor: pointer; margin: 0;">Відкрити камеру</label>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" class="hidden">
+        </div>
+
+        <div id="scanner-loading-area" class="card hidden" style="text-align: center;">
+            <img id="food-preview" src="" alt="Food Preview" style="width: 100%; height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="spinner" style="margin: 0 auto 15px;"></div>
+            <h3 class="pulsate-text" style="color: #3B82F6;">ШІ аналізує страву...</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Визначаємо інгредієнти та вагу</p>
+        </div>
+
+        <div id="scanner-result-area" class="hidden">
+            <div class="card" style="border-top: 4px solid #3B82F6;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
+                    <div>
+                        <h2 id="food-name" style="margin: 0 0 5px 0; font-size: 20px;">Авокадо тост з яйцем</h2>
+                        <p id="food-weight" style="margin: 0; color: var(--text-muted); font-size: 13px;">Орієнтовна порція</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <span id="food-kcal" class="highlight-number" style="font-size: 28px;">340</span>
+                        <span style="font-size: 12px; color: var(--text-muted); display: block;">ккал</span>
+                    </div>
+                </div>
+
+                <div class="activity-grid" style="margin-top: 0; margin-bottom: 20px;">
+                    <div class="activity-item" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2);"><span class="activity-icon">🥩</span><div class="activity-data"><span id="food-protein" class="highlight-number" style="font-size: 18px; color: #EC4899;">14</span><span class="activity-label">Білки</span></div></div>
+                    <div class="activity-item" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);"><span class="activity-icon">🥑</span><div class="activity-data"><span id="food-fat" class="highlight-number" style="font-size: 18px; color: #F59E0B;">18</span><span class="activity-label">Жири</span></div></div>
+                    <div class="activity-item" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);"><span class="activity-icon">🥐</span><div class="activity-data"><span id="food-carbs" class="highlight-number" style="font-size: 18px; color: #10B981;">32</span><span class="activity-label">Вуглеводи</span></div></div>
+                </div>
+
+                <button id="btn-add-food" class="btn-primary" style="margin-top: 0; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);">Додати в Орбіту 🍽</button>
+                <button id="btn-retake-photo" class="btn-primary btn-small" style="background: transparent; color: var(--text-muted); box-shadow: none; margin-top: 5px;">Сфотографувати ще раз</button>
+            </div>
         </div>
     </div>
 
