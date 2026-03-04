@@ -325,82 +325,25 @@ document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     });
 });
 
-/// --- КНОПКА "ОТМЕТИТЬ МЕСЯЧНЫЕ" ---
-document.getElementById('btn-log-period').addEventListener('click', () => {
-    // Вызываем нативное окно подтверждения Telegram
-    tg.showConfirm("Отметить сегодняшний день как первый день месячных?", function(result) {
-        if (result) {
-            // Если пользователь нажал "ОК"
-            const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
-            const btn = document.getElementById('btn-log-period');
-            
-            tg.HapticFeedback.impactOccurred('medium');
-            btn.innerText = "Обновляем...";
-
-            const cDur = userData.cycleDuration || 28;
-            const pDur = userData.periodDuration || 5;
-
-            sendToServer({
-                action: "update_cycle", userId: currentUserId, cycleStart: todayStr, 
-                cycleDuration: cDur, periodDuration: pDur
-            }).then(() => {
-                btn.innerText = "Отметить месячные";
-                userData.cycleStart = todayStr;
-                renderRhythmDashboard(todayStr, cDur, pDur);
-            });
-        }
-    });
-});
-
-// --- КНОПКА "ИЗМЕНИТЬ ДАТЫ" (БЫСТРОЕ РЕДАКТИРОВАНИЕ) ---
-const editCycleModal = document.getElementById('edit-cycle-modal');
-
-document.getElementById('btn-edit-cycle').addEventListener('click', () => {
-    // Подставляем текущую дату из базы в поле ввода
-    document.getElementById('input-edit-cycle-start').value = userData.cycleStart || '';
-    editCycleModal.classList.remove('hidden');
-    tg.HapticFeedback.impactOccurred('light');
-});
-
-document.getElementById('btn-close-edit-cycle').addEventListener('click', () => {
-    editCycleModal.classList.add('hidden');
-});
-
-document.getElementById('btn-save-edit-cycle').addEventListener('click', () => {
-    const newDate = document.getElementById('input-edit-cycle-start').value;
-    if(!newDate) return tg.showAlert("Выбери верную дату!");
-
-    const btn = document.getElementById('btn-save-edit-cycle');
-    btn.innerText = "Сохраняем...";
-
-    // Берем УЖЕ сохраненные средние значения длины цикла, чтобы не просить их заново!
-    const cDur = userData.cycleDuration || 28;
-    const pDur = userData.periodDuration || 5;
-
-    sendToServer({
-        action: "update_cycle", userId: currentUserId, cycleStart: newDate, 
-        cycleDuration: cDur, periodDuration: pDur
-    }).then(() => {
-        btn.innerText = "Сохранить";
-        editCycleModal.classList.add('hidden');
-        userData.cycleStart = newDate;
-        renderRhythmDashboard(newDate, cDur, pDur); // Перерисовываем красивый дашборд
-        tg.HapticFeedback.notificationOccurred('success');
-    });
-});
-
-// --- ПОЛНЫЙ КАЛЕНДАРЬ НА МЕСЯЦ ---
+// --- ІНТЕРАКТИВНИЙ КАЛЕНДАР (ЛОГІКА FLO) ---
 const fullCalModal = document.getElementById('full-calendar-modal');
-document.getElementById('btn-open-full-cal').addEventListener('click', () => {
-    renderFullCalendar();
-    fullCalModal.classList.remove('hidden');
-    tg.HapticFeedback.impactOccurred('light');
-});
+const btnOpenInteractiveCal = document.getElementById('btn-open-interactive-cal');
 
+// Відкриття календаря
+if(btnOpenInteractiveCal) {
+    btnOpenInteractiveCal.addEventListener('click', () => {
+        renderFullCalendar();
+        fullCalModal.classList.remove('hidden');
+        tg.HapticFeedback.impactOccurred('light');
+    });
+}
+
+// Закриття
 document.getElementById('btn-close-full-cal').addEventListener('click', () => {
     fullCalModal.classList.add('hidden');
 });
 
+// Малюємо календар і робимо його клікабельним
 function renderFullCalendar() {
     const grid = document.getElementById('full-calendar-grid');
     grid.innerHTML = "";
@@ -409,15 +352,15 @@ function renderFullCalendar() {
     const year = today.getFullYear();
     const month = today.getMonth();
 
-    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    const monthNames = ["Січень", "Лютий", "Березень", "Квітень", "Травень", "Червень", "Липень", "Серпень", "Вересень", "Жовтень", "Листопад", "Грудень"];
     document.getElementById('full-cal-month').innerText = `${monthNames[month]} ${year}`;
 
     const firstDay = new Date(year, month, 1).getDay();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     
-    let startDay = firstDay === 0 ? 6 : firstDay - 1; // Понедельник = 0
+    let startDay = firstDay === 0 ? 6 : firstDay - 1; // Понеділок = 0
 
-    // Пустые ячейки до 1-го числа
+    // Порожні клітинки на початку
     for (let i = 0; i < startDay; i++) {
         let emptyDiv = document.createElement('div');
         emptyDiv.className = 'cal-grid-day empty';
@@ -433,8 +376,13 @@ function renderFullCalendar() {
         let dayDiv = document.createElement('div');
         dayDiv.className = 'cal-grid-day';
         dayDiv.innerText = i;
-
+        
+        // Зберігаємо справжню дату в елементі, щоб потім її прочитати
         let currentDate = new Date(year, month, i);
+        // Зсув часового поясу, щоб дата не "з'їхала" на день назад
+        let localDateStr = new Date(currentDate.getTime() - (currentDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        dayDiv.setAttribute('data-date', localDateStr);
+
         let diffTime = currentDate.getTime() - start.getTime();
         let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
@@ -443,22 +391,86 @@ function renderFullCalendar() {
 
         if (i === today.getDate()) dayDiv.classList.add('today');
 
+        // Відмальовуємо поточні прогнози
         if (userData.cycleStart) {
             if (cDay >= 1 && cDay <= pDur) {
-                dayDiv.classList.add('period');
+                // Це день місячних за прогнозом. Робимо його одразу "вибраним" користувачем!
+                dayDiv.classList.add('user-selected'); 
             } else if (cDay >= 13 && cDay <= 15) {
                 dayDiv.classList.add('ovulation');
             }
         }
 
+        // ЛОГІКА КЛІКУ ПО ДНЮ (Виділення)
         dayDiv.addEventListener('click', () => {
-            tg.showAlert(`Дата: ${i} ${monthNames[month]}.`);
+            dayDiv.classList.toggle('user-selected');
+            tg.HapticFeedback.selectionChanged();
         });
 
         grid.appendChild(dayDiv);
     }
 }
 
+// КНОПКА ЗБЕРЕЖЕННЯ (Магія розрахунку)
+document.getElementById('btn-save-calendar-dates').addEventListener('click', () => {
+    // Знаходимо всі дні, які користувач виділив рожевим
+    const selectedElements = document.querySelectorAll('.cal-grid-day.user-selected');
+    
+    if (selectedElements.length === 0) {
+        return tg.showAlert("Відміть хоча б один день місячних у календарі!");
+    }
+
+    const btn = document.getElementById('btn-save-calendar-dates');
+    btn.innerText = "Оновлення прогнозів...";
+    tg.HapticFeedback.impactOccurred('medium');
+
+    // Шукаємо найранішу дату серед виділених (це і є початок циклу)
+    let earliestDateStr = null;
+    let earliestDateObj = null;
+
+    selectedElements.forEach(el => {
+        const dateStr = el.getAttribute('data-date');
+        const dateObj = new Date(dateStr);
+        if (!earliestDateObj || dateObj < earliestDateObj) {
+            earliestDateObj = dateObj;
+            earliestDateStr = dateStr;
+        }
+    });
+
+    // Тривалість місячних — це просто кількість виділених кружечків!
+    let newPeriodDuration = selectedElements.length;
+    let currentCycleDuration = userData.cycleDuration || 28; // Тривалість циклу не чіпаємо
+
+    // Відправляємо в базу
+    sendToServer({
+        action: "update_cycle", 
+        userId: currentUserId, 
+        cycleStart: earliestDateStr, 
+        cycleDuration: currentCycleDuration, 
+        periodDuration: newPeriodDuration
+    }).then(() => {
+        btn.innerText = "Зберегти дати";
+        fullCalModal.classList.add('hidden'); // Ховаємо календар
+        
+        // Оновлюємо локальні дані та перемальовуємо головний екран
+        userData.cycleStart = earliestDateStr;
+        userData.periodDuration = newPeriodDuration;
+        renderRhythmDashboard(earliestDateStr, currentCycleDuration, newPeriodDuration);
+        
+        tg.HapticFeedback.notificationOccurred('success');
+    });
+});
+
+// --- 6. МЕНЮ НАВИГАЦИИ ---
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        navItems.forEach(nav => nav.classList.remove('active'));
+        item.classList.add('active');
+        allScreens.forEach(screen => screen.classList.add('hidden'));
+        document.getElementById(item.getAttribute('data-target')).classList.remove('hidden');
+        tg.HapticFeedback.selectionChanged();
+    });
+});
 // --- 6. МЕНЮ НАВИГАЦИИ ---
 navItems.forEach(item => {
     item.addEventListener('click', () => {

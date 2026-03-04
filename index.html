@@ -101,10 +101,7 @@
                 </div>
             </div>
 
-            <div style="text-align: center; margin-bottom: 20px;">
-                <button id="btn-log-period" class="btn-primary" style="background: rgba(255,255,255,0.1); color: white; margin-top: 0;">Отметить месячные</button>
-                <div id="btn-edit-cycle" style="margin-top: 15px; color: var(--text-muted); font-size: 14px; text-decoration: underline; cursor: pointer; padding: 10px;">✏️ Изменить даты цикла</div>
-            </div>
+            <button id="btn-open-interactive-cal" class="btn-primary" style="background: rgba(236, 72, 153, 0.15); color: #EC4899; border: 1px solid rgba(236, 72, 153, 0.5); margin-top: 0; margin-bottom: 20px;">Відмітити в календарі 🩸</button>
 
             <div class="card" style="margin-bottom: 20px;">
                 <h3 style="margin-bottom: 10px;">Как ты себя чувствуешь?</h3>
@@ -199,32 +196,21 @@
     </div>
 
 <div id="full-calendar-modal" class="modal hidden">
-        <div class="modal-content card" style="max-width: 350px; padding: 15px;">
+        <div class="modal-content card" style="max-width: 350px; padding: 20px;">
             <div class="card-header" style="margin-bottom: 20px;">
-                <h3 id="full-cal-month" style="text-transform: capitalize;">Месяц</h3>
+                <h3 id="full-cal-month" style="text-transform: capitalize; font-size: 20px;">Місяць</h3>
                 <button id="btn-close-full-cal" class="btn-icon">✖</button>
             </div>
-            <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px;">
+            
+            <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: -10px; margin-bottom: 15px;">Натискай на дати, щоб відмітити дні місячних.</p>
+            
+            <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; font-weight: bold;">
                 <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
             </div>
-            <div id="full-calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center;">
+            <div id="full-calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
                 </div>
-        </div>
-    </div>
-<div id="edit-cycle-modal" class="modal hidden">
-        <div class="modal-content card">
-            <div class="card-header">
-                <h3>Изменить дату</h3>
-                <button id="btn-close-edit-cycle" class="btn-icon">✖</button>
-            </div>
-            <div class="form-container">
-                <p style="font-size: 13px; color: var(--text-muted); margin-top: -10px;">ИИ помнит твою длину цикла. Просто укажи верный первый день месячных.</p>
-                <div class="form-group">
-                    <label>Первый день месячных</label>
-                    <input type="date" id="input-edit-cycle-start" style="color-scheme: dark;">
-                </div>
-            </div>
-            <button id="btn-save-edit-cycle" class="btn-primary">Сохранить</button>
+            
+            <button id="btn-save-calendar-dates" class="btn-primary" style="margin-top: 25px; background: #EC4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);">Зберегти дати</button>
         </div>
     </div>
     <script src="script.js"></script>
