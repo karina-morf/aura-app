@@ -582,18 +582,18 @@ if (cameraInput) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Читаємо файл, щоб показати прев'ю
+        // Читаємо файл, щоб показати прев'ю на екрані
         const reader = new FileReader();
         reader.onload = function(e) {
-            foodPreview.src = e.target.result; // Вставляємо фото
+            foodPreview.src = e.target.result; // Вставляємо картинку
             
-            // Ховаємо кнопку, показуємо анімацію завантаження
+            // Ховаємо кнопку, показуємо анімацію "ШІ аналізує"
             uploadArea.classList.add('hidden');
             loadingArea.classList.remove('hidden');
             tg.HapticFeedback.impactOccurred('medium');
 
             // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
-            // У наступному кроці тут буде реальний запит до сервера!
+            // Згодом ми підключимо сюди реальний Google Gemini Vision!
             setTimeout(() => {
                 loadingArea.classList.add('hidden');
                 resultArea.classList.remove('hidden');
@@ -609,7 +609,7 @@ if (btnRetakePhoto) {
     btnRetakePhoto.addEventListener('click', () => {
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
-        cameraInput.value = ''; // Скидаємо файл
+        cameraInput.value = ''; // Скидаємо минулий файл
         tg.HapticFeedback.selectionChanged();
     });
 }
@@ -617,14 +617,14 @@ if (btnRetakePhoto) {
 // Кнопка "Додати в Орбіту"
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
-        // Беремо дані з картки результату
+        // Беремо ккал з екрану
         const kcal = parseInt(document.getElementById('food-kcal').innerText);
         
-        // Оновлюємо статистику (поки що тільки візуально калорії)
+        // Оновлюємо калорії на головному екрані
         userData.caloriesToday += kcal;
         document.getElementById('stat-kcal').innerText = userData.caloriesToday;
         
-        // Повертаємось на головний екран "Орбіта"
+        // Імітуємо клік по кнопці "Орбіта" в нижньому меню
         document.querySelector('.nav-item[data-target="main-screen"]').click();
         
         // Скидаємо сканер для наступного разу
