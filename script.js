@@ -542,7 +542,19 @@ navItems.forEach(item => {
         navItems.forEach(nav => nav.classList.remove('active'));
         item.classList.add('active');
         allScreens.forEach(screen => screen.classList.add('hidden'));
-        document.getElementById(item.getAttribute('data-target')).classList.remove('hidden');
+        
+        const targetId = item.getAttribute('data-target');
+        document.getElementById(targetId).classList.remove('hidden');
         tg.HapticFeedback.selectionChanged();
+
+        // ФІКС КАЛЕНДАРЯ: Скролимо до "Сьогодні", коли відкриваємо екран "Ритм"
+        if (targetId === 'calendar-screen') {
+            setTimeout(() => {
+                const todayEl = document.querySelector('.calendar-day.today');
+                if (todayEl) {
+                    todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }, 50); // Затримка 50мс, щоб екран встиг стати видимим
+        }
     });
 });
