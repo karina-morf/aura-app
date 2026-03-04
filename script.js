@@ -567,3 +567,72 @@ navItems.forEach(item => {
         }
     });
 });
+// --- 7. AURA ФОКУС (СКАНЕР ЇЖІ) ---
+const cameraInput = document.getElementById('camera-input');
+const uploadArea = document.getElementById('scanner-upload-area');
+const loadingArea = document.getElementById('scanner-loading-area');
+const resultArea = document.getElementById('scanner-result-area');
+const foodPreview = document.getElementById('food-preview');
+const btnRetakePhoto = document.getElementById('btn-retake-photo');
+const btnAddFood = document.getElementById('btn-add-food');
+
+// Коли користувач робить фото або обирає з галереї
+if (cameraInput) {
+    cameraInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Читаємо файл, щоб показати прев'ю
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            foodPreview.src = e.target.result; // Вставляємо фото
+            
+            // Ховаємо кнопку, показуємо анімацію завантаження
+            uploadArea.classList.add('hidden');
+            loadingArea.classList.remove('hidden');
+            tg.HapticFeedback.impactOccurred('medium');
+
+            // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
+            // У наступному кроці тут буде реальний запит до сервера!
+            setTimeout(() => {
+                loadingArea.classList.add('hidden');
+                resultArea.classList.remove('hidden');
+                tg.HapticFeedback.notificationOccurred('success');
+            }, 3000);
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Кнопка "Сфотографувати ще раз"
+if (btnRetakePhoto) {
+    btnRetakePhoto.addEventListener('click', () => {
+        resultArea.classList.add('hidden');
+        uploadArea.classList.remove('hidden');
+        cameraInput.value = ''; // Скидаємо файл
+        tg.HapticFeedback.selectionChanged();
+    });
+}
+
+// Кнопка "Додати в Орбіту"
+if (btnAddFood) {
+    btnAddFood.addEventListener('click', () => {
+        // Беремо дані з картки результату
+        const kcal = parseInt(document.getElementById('food-kcal').innerText);
+        
+        // Оновлюємо статистику (поки що тільки візуально калорії)
+        userData.caloriesToday += kcal;
+        document.getElementById('stat-kcal').innerText = userData.caloriesToday;
+        
+        // Повертаємось на головний екран "Орбіта"
+        document.querySelector('.nav-item[data-target="main-screen"]').click();
+        
+        // Скидаємо сканер для наступного разу
+        resultArea.classList.add('hidden');
+        uploadArea.classList.remove('hidden');
+        cameraInput.value = '';
+        
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Страву успішно додано до Орбіти! 🪐");
+    });
+}

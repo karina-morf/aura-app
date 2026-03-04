@@ -112,6 +112,7 @@ input:focus, select:focus, textarea:focus {
 /* Кнопки */
 .btn-primary {
     width: 100%;
+    box-sizing: border-box; /* ОСЬ ЦЕЙ РЯДОК ФІКСИТЬ ПРОБЛЕМУ */
     padding: 18px;
     background: var(--primary-gradient);
     border: none;
