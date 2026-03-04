@@ -52,15 +52,17 @@ function checkUser() {
             document.getElementById('stat-distance').innerText = userData.distanceToday;
             document.getElementById('stat-kcal').innerText = userData.caloriesToday;
 
-            // Выводим КБЖУ
             document.getElementById('plan-kcal').innerText = `${data.userData.dailyKcal} ккал`;
             document.getElementById('plan-protein').innerText = data.userData.protein;
             document.getElementById('plan-fat').innerText = data.userData.fat;
             document.getElementById('plan-carbs').innerText = data.userData.carbs;
 
-            // --- ОБНОВЛЕННЫЙ БЛОК РИТМА ---
+            // БЛОК РИТМА
             if (data.userData.cycleStart && data.userData.cycleDuration) {
                 const periodDuration = data.userData.periodDuration || 5; 
+                userData.cycleStart = data.userData.cycleStart;
+                userData.cycleDuration = data.userData.cycleDuration;
+                userData.periodDuration = periodDuration;
                 renderRhythmDashboard(data.userData.cycleStart, data.userData.cycleDuration, periodDuration);
             }
 
@@ -84,30 +86,21 @@ btnRegister.addEventListener('click', () => {
     
     if(!weight || !height || !targetWeight || !age || !weeks) return tg.showAlert("Заполни все поля, чтобы ИИ смог всё рассчитать!");
 
-    // 1. Считаем Базовый метаболизм (BMR) по Миффлину-Сан Жеору
     let bmr = (10 * weight) + (6.25 * height) - (5 * age);
     bmr = gender === 'female' ? bmr - 161 : bmr + 5;
-
-    // 2. Считаем Общий расход энергии (TDEE). Берем коэффициент 1.2 (сидячий образ жизни как база)
     const tdee = bmr * 1.2;
-
-    // 3. Считаем необходимый дефицит калорий
     const weightToLose = weight - targetWeight;
-    const totalDeficit = weightToLose * 7700; // 1 кг жира = ~7700 ккал
+    const totalDeficit = weightToLose * 7700;
     const dailyDeficit = totalDeficit / (weeks * 7);
 
-    // 4. Дневная норма калорий
     let dailyKcal = Math.round(tdee - dailyDeficit);
-    
-    // Защита от экстремального голодания
     const minKcal = gender === 'female' ? 1200 : 1500;
     if (dailyKcal < minKcal) dailyKcal = minKcal;
 
-    // 5. Расчет Макронутриентов (БЖУ)
-    const protein = Math.round(weight * 1.8); // 1.8г белка на кг
-    const fat = Math.round(weight * 1.0);     // 1г жира на кг
+    const protein = Math.round(weight * 1.8);
+    const fat = Math.round(weight * 1.0);     
     const remainingKcal = dailyKcal - (protein * 4) - (fat * 9);
-    const carbs = Math.max(0, Math.round(remainingKcal / 4)); // Остаток уходит в углеводы
+    const carbs = Math.max(0, Math.round(remainingKcal / 4));
 
     userData.weight = weight;
     userData.waterGoal = weight * 35;
@@ -121,7 +114,6 @@ btnRegister.addEventListener('click', () => {
         gender: gender, age: age, height: height, weight: weight, targetWeight: targetWeight, weeks: weeks,
         dailyKcal: dailyKcal, protein: protein, fat: fat, carbs: carbs
     }).then(() => {
-        // Заполняем интерфейс перед показом
         document.getElementById('water-goal').innerText = userData.waterGoal;
         document.getElementById('water-current').innerText = 0;
         document.getElementById('greeting-name').innerText = `Привет, ${tg.initDataUnsafe?.user?.first_name || 'Гость'}!`;
@@ -169,13 +161,10 @@ btnSaveActivity.addEventListener('click', () => {
 
     activityModal.classList.add('hidden');
     tg.HapticFeedback.notificationOccurred('success');
-
     sendToServer({ action: "log_activity", userId: currentUserId, steps: steps, distance: distance, calories: calories }).catch(e=>console.error(e));
 });
 
 // --- 5. ЖЕНСКИЙ КАЛЕНДАРЬ (AURA x FLO) ---
-
-// Функция для генерации горизонтального календаря и подсчета дней
 function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     document.getElementById('rhythm-setup').classList.add('hidden');
     document.getElementById('rhythm-dashboard').classList.remove('hidden');
@@ -184,42 +173,35 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     const today = new Date();
     today.setHours(0,0,0,0);
     
-    // Считаем разницу в днях от начала цикла до сегодня
     const diffTime = today.getTime() - start.getTime();
     let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     
-    // Текущий день цикла (от 1 до cycleDuration)
     let currentDayOfCycle = (diffDays % cycleDuration) + 1;
-    if (currentDayOfCycle <= 0) currentDayOfCycle += cycleDuration; // Фикс для отрицательных дат
+    if (currentDayOfCycle <= 0) currentDayOfCycle += cycleDuration; 
 
-    // --- Обновляем большой круг ---
     const circleValue = document.getElementById('cycle-days-main');
     const circleText = document.getElementById('cycle-text-main');
     const cycleCircle = document.getElementById('cycle-circle');
 
     if (currentDayOfCycle <= periodDuration) {
-        // Идут месячные
         circleValue.innerText = `День ${currentDayOfCycle}`;
         circleText.innerText = "месячных";
-        cycleCircle.style.borderColor = "rgba(236, 72, 153, 0.6)"; // Ярко-розовый
+        cycleCircle.style.borderColor = "rgba(236, 72, 153, 0.6)"; 
         cycleCircle.style.boxShadow = "0 0 50px rgba(236, 72, 153, 0.3)";
     } else {
-        // Считаем дни до следующих
         const daysLeft = cycleDuration - currentDayOfCycle + 1;
         circleValue.innerText = daysLeft;
         circleText.innerText = "дней до\nмесячных";
         
-        // Меняем цвет круга в зависимости от фазы (овуляция - бирюзовый, иначе - стандарт)
         if (currentDayOfCycle >= 12 && currentDayOfCycle <= 16) {
-            cycleCircle.style.borderColor = "rgba(45, 212, 191, 0.6)"; // Бирюзовый
+            cycleCircle.style.borderColor = "rgba(45, 212, 191, 0.6)"; 
             cycleCircle.style.boxShadow = "0 0 50px rgba(45, 212, 191, 0.3)";
         } else {
-            cycleCircle.style.borderColor = "rgba(255, 255, 255, 0.2)"; // Нейтральный
+            cycleCircle.style.borderColor = "rgba(255, 255, 255, 0.2)"; 
             cycleCircle.style.boxShadow = "none";
         }
     }
 
-    // --- Логика Фаз и советов (как было) ---
     let phaseName = "", phaseDesc = "", isLuteal = false;
     if (currentDayOfCycle >= 1 && currentDayOfCycle <= periodDuration) {
         phaseName = "Менструальная фаза 🩸";
@@ -240,19 +222,15 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     const adviceBlock = document.getElementById('phase-advice');
     isLuteal ? adviceBlock.classList.remove('hidden') : adviceBlock.classList.add('hidden');
 
-    // --- Рисуем ленту календаря ---
     const strip = document.getElementById('calendar-strip');
-    strip.innerHTML = ""; // Очищаем
-
+    strip.innerHTML = ""; 
     const daysNames = ['Вс', 'Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб'];
     let todayElement = null;
 
-    // Генерируем даты: 10 дней назад, 30 вперед
     for (let i = -10; i <= 30; i++) {
         let date = new Date(today);
         date.setDate(today.getDate() + i);
         
-        // Вычисляем, какой это будет день цикла для этой даты
         let dDiff = Math.floor((date.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
         let cDay = (dDiff % cycleDuration) + 1;
         if (cDay <= 0) cDay += cycleDuration;
@@ -265,52 +243,40 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
             todayElement = div;
         }
 
-        // Закрашиваем месячные и овуляцию
         if (cDay >= 1 && cDay <= periodDuration) {
             div.classList.add('period');
-        } else if (cDay >= 13 && cDay <= 15) { // Окно овуляции
+        } else if (cDay >= 13 && cDay <= 15) { 
             div.classList.add('ovulation');
         }
 
-        div.innerHTML = `
-            <span class="day-name">${daysNames[date.getDay()]}</span>
-            <span class="day-number">${date.getDate()}</span>
-        `;
+        div.innerHTML = `<span class="day-name">${daysNames[date.getDay()]}</span><span class="day-number">${date.getDate()}</span>`;
         strip.appendChild(div);
     }
 
-    // Автоматически прокручиваем ленту до сегодняшнего дня
     setTimeout(() => {
-        if (todayElement) {
-            todayElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
-        }
+        if (todayElement) todayElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
     }, 100);
 }
 
-// Кнопка сохранения 3 циклов
+// Первоначальная настройка циклов
 btnSaveCycle.addEventListener('click', () => {
-    // Получаем даты
     const c1Start = new Date(document.getElementById('c1-start').value);
     const c1End = new Date(document.getElementById('c1-end').value);
     const c2Start = new Date(document.getElementById('c2-start').value);
     const c3Start = new Date(document.getElementById('c3-start').value);
 
-    // Простая проверка (введен ли хотя бы последний цикл полностью и старты прошлых)
     if (isNaN(c1Start) || isNaN(c1End) || isNaN(c2Start) || isNaN(c3Start)) {
         return tg.showAlert("Заполни даты начала всех 3 циклов и конец последнего!");
     }
 
-    // 1. Длительность последних месячных
     let periodDur = Math.round((c1End - c1Start) / (1000 * 60 * 60 * 24)) + 1;
-    if (periodDur < 3 || periodDur > 10) periodDur = 5; // Защита от странных вводов
+    if (periodDur < 3 || periodDur > 10) periodDur = 5; 
 
-    // 2. Длина циклов (разница между началами)
     const len1 = Math.abs(Math.round((c1Start - c2Start) / (1000 * 60 * 60 * 24)));
     const len2 = Math.abs(Math.round((c2Start - c3Start) / (1000 * 60 * 60 * 24)));
     
-    // 3. Средняя длина цикла
     let avgCycle = Math.round((len1 + len2) / 2);
-    if (avgCycle < 21 || avgCycle > 35) avgCycle = 28; // Защита от ошибки
+    if (avgCycle < 21 || avgCycle > 35) avgCycle = 28; 
 
     const latestStartStr = document.getElementById('c1-start').value;
 
@@ -318,20 +284,139 @@ btnSaveCycle.addEventListener('click', () => {
     btnSaveCycle.innerText = "Сохраняем...";
     
     sendToServer({ 
-        action: "update_cycle", 
-        userId: currentUserId, 
-        cycleStart: latestStartStr, 
-        cycleDuration: avgCycle,
-        periodDuration: periodDur
+        action: "update_cycle", userId: currentUserId, cycleStart: latestStartStr, 
+        cycleDuration: avgCycle, periodDuration: periodDur
     }).then(() => {
         btnSaveCycle.innerText = "Создать мой календарь 🪄";
-        // Сохраняем локально, чтобы не перезагружать
-        userData.cycleStart = latestStartStr;
-        userData.cycleDuration = avgCycle;
-        userData.periodDuration = periodDur;
+        userData.cycleStart = latestStartStr; userData.cycleDuration = avgCycle; userData.periodDuration = periodDur;
         renderRhythmDashboard(latestStartStr, avgCycle, periodDur);
     });
 });
+
+// --- ЛОГИКА СИМПТОМОВ ---
+let selectedSymptoms = [];
+document.querySelectorAll('.symptom-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        chip.classList.toggle('active');
+        const sym = chip.getAttribute('data-sym');
+        if (selectedSymptoms.includes(sym)) {
+            selectedSymptoms = selectedSymptoms.filter(s => s !== sym);
+        } else {
+            selectedSymptoms.push(sym);
+        }
+        tg.HapticFeedback.selectionChanged();
+    });
+});
+
+document.getElementById('btn-save-symptoms').addEventListener('click', () => {
+    const note = document.getElementById('symptom-note').value;
+    const btn = document.getElementById('btn-save-symptoms');
+    
+    btn.innerText = "Сохраняем...";
+    sendToServer({
+        action: "log_symptoms",
+        userId: currentUserId,
+        symptoms: selectedSymptoms.join(','),
+        note: note
+    }).then(() => {
+        btn.innerText = "Сохранено ✓";
+        tg.HapticFeedback.notificationOccurred('success');
+        setTimeout(() => btn.innerText = "Сохранить симптомы", 2000);
+    });
+});
+
+// --- КНОПКА "ОТМЕТИТЬ МЕСЯЧНЫЕ" ---
+document.getElementById('btn-log-period').addEventListener('click', () => {
+    // Устанавливаем начало цикла на сегодня
+    const todayStr = new Date(new Date().getTime() - (new Date().getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+    const btn = document.getElementById('btn-log-period');
+    
+    tg.HapticFeedback.impactOccurred('medium');
+    btn.innerText = "Обновляем...";
+
+    // Используем средние значения, если они есть, или стандартные
+    const cDur = userData.cycleDuration || 28;
+    const pDur = userData.periodDuration || 5;
+
+    sendToServer({
+        action: "update_cycle", userId: currentUserId, cycleStart: todayStr, 
+        cycleDuration: cDur, periodDuration: pDur
+    }).then(() => {
+        btn.innerText = "Отметить месячные";
+        userData.cycleStart = todayStr;
+        renderRhythmDashboard(todayStr, cDur, pDur);
+    });
+});
+
+// --- ПОЛНЫЙ КАЛЕНДАРЬ НА МЕСЯЦ ---
+const fullCalModal = document.getElementById('full-calendar-modal');
+document.getElementById('btn-open-full-cal').addEventListener('click', () => {
+    renderFullCalendar();
+    fullCalModal.classList.remove('hidden');
+    tg.HapticFeedback.impactOccurred('light');
+});
+
+document.getElementById('btn-close-full-cal').addEventListener('click', () => {
+    fullCalModal.classList.add('hidden');
+});
+
+function renderFullCalendar() {
+    const grid = document.getElementById('full-calendar-grid');
+    grid.innerHTML = "";
+
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth();
+
+    const monthNames = ["Январь", "Февраль", "Март", "Апрель", "Май", "Июнь", "Июль", "Август", "Сентябрь", "Октябрь", "Ноябрь", "Декабрь"];
+    document.getElementById('full-cal-month').innerText = `${monthNames[month]} ${year}`;
+
+    const firstDay = new Date(year, month, 1).getDay();
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+    
+    let startDay = firstDay === 0 ? 6 : firstDay - 1; // Понедельник = 0
+
+    // Пустые ячейки до 1-го числа
+    for (let i = 0; i < startDay; i++) {
+        let emptyDiv = document.createElement('div');
+        emptyDiv.className = 'cal-grid-day empty';
+        grid.appendChild(emptyDiv);
+    }
+
+    let start = userData.cycleStart ? new Date(userData.cycleStart) : today;
+    start.setHours(0,0,0,0);
+    let cDur = userData.cycleDuration || 28;
+    let pDur = userData.periodDuration || 5;
+
+    for (let i = 1; i <= daysInMonth; i++) {
+        let dayDiv = document.createElement('div');
+        dayDiv.className = 'cal-grid-day';
+        dayDiv.innerText = i;
+
+        let currentDate = new Date(year, month, i);
+        let diffTime = currentDate.getTime() - start.getTime();
+        let diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        let cDay = (diffDays % cDur) + 1;
+        if (cDay <= 0) cDay += cDur;
+
+        if (i === today.getDate()) dayDiv.classList.add('today');
+
+        if (userData.cycleStart) {
+            if (cDay >= 1 && cDay <= pDur) {
+                dayDiv.classList.add('period');
+            } else if (cDay >= 13 && cDay <= 15) {
+                dayDiv.classList.add('ovulation');
+            }
+        }
+
+        dayDiv.addEventListener('click', () => {
+            tg.showAlert(`Дата: ${i} ${monthNames[month]}.`);
+        });
+
+        grid.appendChild(dayDiv);
+    }
+}
 
 // --- 6. МЕНЮ НАВИГАЦИИ ---
 navItems.forEach(item => {
