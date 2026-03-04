@@ -1,10 +1,10 @@
-/* Базовые цвета в стиле премиум-приложений */
+/* Базові кольори в стилі преміум-додатків */
 :root {
-    --bg-dark: #07070A; /* Почти черный фон */
-    --glow-color: #2563EB; /* Яркий синий для свечения */
-    --card-bg: rgba(255, 255, 255, 0.05); /* Полупрозрачные карточки */
+    --bg-dark: #07070A; /* Майже чорний фон */
+    --glow-color: #2563EB; /* Яскравий синій для світіння */
+    --card-bg: rgba(255, 255, 255, 0.05); /* Напівпрозорі картки */
     --card-border: rgba(255, 255, 255, 0.1);
-    --primary-gradient: linear-gradient(90deg, #3B82F6, #1D4ED8); /* Градиент кнопок */
+    --primary-gradient: linear-gradient(90deg, #3B82F6, #1D4ED8); /* Градієнт кнопок */
     --text-main: #FFFFFF;
     --text-muted: #9CA3AF;
 }
@@ -20,7 +20,7 @@ body {
     position: relative;
 }
 
-/* Красивое фоновое свечение сверху */
+/* Красиве фонове світіння зверху */
 .bg-glow {
     position: fixed;
     top: -100px;
@@ -43,7 +43,7 @@ body {
     display: none !important;
 }
 
-/* Типографика */
+/* Типографіка */
 .brand-header {
     display: flex;
     align-items: center;
@@ -71,7 +71,7 @@ body {
     margin-top: -10px;
 }
 
-/* Формы ввода */
+/* Форми вводу */
 .form-container {
     display: flex;
     flex-direction: column;
@@ -136,7 +136,7 @@ input:focus, select:focus, textarea:focus {
     margin-top: 10px;
 }
 
-/* Карточки (Стиль Glassmorphism) */
+/* Картки (Стиль Glassmorphism) */
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -234,12 +234,12 @@ input:focus, select:focus, textarea:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Отступ снизу для меню */
+/* Відступ знизу для меню */
 .main-content {
     padding-bottom: 90px;
 }
 
-/* Дизайн нижнего меню */
+/* Дизайн нижнього меню */
 .bottom-nav {
     position: fixed;
     bottom: 0;
@@ -288,9 +288,9 @@ input:focus, select:focus, textarea:focus {
     transform: translateY(-2px);
 }
 
-/* --- НОВЫЕ СТИЛИ ДЛЯ АКТИВНОСТИ И ВСПЛЫВАЮЩИХ ОКОН --- */
+/* --- НОВІ СТИЛІ ДЛЯ АКТИВНОСТІ ТА СПЛИВАЮЧИХ ВІКОН --- */
 
-/* Дашборд активности */
+/* Дашборд активності */
 .activity-grid {
     display: flex;
     justify-content: space-between;
@@ -312,7 +312,7 @@ input:focus, select:focus, textarea:focus {
 .activity-data .highlight-number { font-size: 20px; color: white; }
 .activity-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-/* Круглая кнопка с плюсиком */
+/* Кругла кнопка з плюсиком */
 .btn-icon {
     background: rgba(255, 255, 255, 0.1);
     border: none;
@@ -332,7 +332,7 @@ input:focus, select:focus, textarea:focus {
     background: rgba(255, 255, 255, 0.2);
 }
 
-/* Модальное окно (всплывашка) */
+/* Модальне вікно (спливаюче вікно) */
 .modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -349,9 +349,10 @@ input:focus, select:focus, textarea:focus {
 .modal-content {
     width: 100%;
     max-width: 400px;
-    margin-bottom: 50px; /* Чтобы не перекрывалась клавиатурой телефона */
+    margin-bottom: 50px; /* Щоб не перекривалося клавіатурою телефону */
 }
-/* --- СТИЛИ ДЛЯ РИТМА (AURA x FLO) --- */
+
+/* --- СТИЛІ ДЛЯ РИТМУ (AURA x FLO) --- */
 .horizontal-calendar {
     display: flex;
     gap: 12px;
@@ -376,21 +377,21 @@ input:focus, select:focus, textarea:focus {
     transition: all 0.3s;
 }
 
-/* Сегодняшний день (Большой кружок) */
+/* Сьогоднішній день (Великий кружок) */
 .calendar-day.today {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.05);
 }
 
-/* Дни месячных (Розовые/Красные) */
+/* Дні місячних (Рожеві/Червоні) */
 .calendar-day.period {
     background: rgba(236, 72, 153, 0.2);
     border-color: rgba(236, 72, 153, 0.5);
 }
 .calendar-day.period .day-number { color: #EC4899; }
 
-/* Дни овуляции (Бирюзовые) */
+/* Дні овуляції (Бірюзові) */
 .calendar-day.ovulation {
     background: rgba(45, 212, 191, 0.15);
     border-color: rgba(45, 212, 191, 0.5);
@@ -400,7 +401,7 @@ input:focus, select:focus, textarea:focus {
 .day-name { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
 .day-number { font-size: 20px; font-weight: 700; color: white; margin-top: 4px; }
 
-/* Большой круг по центру */
+/* Великий круг по центру */
 .cycle-circle-container {
     display: flex;
     justify-content: center;
@@ -410,7 +411,7 @@ input:focus, select:focus, textarea:focus {
     width: 200px;
     height: 200px;
     border-radius: 50%;
-    /* Красивый градиентный круг */
+    /* Красивий градієнтний круг */
     background: radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08), transparent 70%);
     border: 3px solid rgba(236, 72, 153, 0.4); 
     display: flex;
@@ -424,7 +425,8 @@ input:focus, select:focus, textarea:focus {
 .cycle-label { font-size: 15px; color: var(--text-muted); width: 80%; line-height: 1.3; }
 
 .cycle-row { margin-bottom: 12px; }
-/* --- СИМПТОМЫ --- */
+
+/* --- СИМПТОМИ --- */
 .symptoms-grid {
     display: flex;
     flex-wrap: wrap;
@@ -448,22 +450,7 @@ input:focus, select:focus, textarea:focus {
     color: white;
 }
 
-/* --- ПОЛНЫЙ КАЛЕНДАРЬ --- */
-.cal-grid-day {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 14px;
-    border-radius: 50%;
-    margin: 2px;
-}
-
-.cal-grid-day.empty { background: transparent; }
-.cal-grid-day.today { border: 1px solid white; font-weight: bold; }
-.cal-grid-day.period { background: rgba(236, 72, 153, 0.2); color: #EC4899; }
-.cal-grid-day.ovulation { background: rgba(45, 212, 191, 0.15); color: #2DD4BF; }
-/* --- ІНТЕРАКТИВНИЙ КАЛЕНДАР --- */
+/* --- ІНТЕРАКТИВНИЙ КАЛЕНДАР (ТА ІСТОРІЯ) --- */
 .cal-grid-day {
     height: 40px;
     display: flex;
@@ -482,7 +469,7 @@ input:focus, select:focus, textarea:focus {
 .cal-grid-day.today { border: 2px solid rgba(255, 255, 255, 0.5); font-weight: bold; }
 
 /* Звичайні прогнози */
-.cal-grid-day.period-predicted { background: rgba(236, 72, 153, 0.15); color: #EC4899; }
+.cal-grid-day.period { background: rgba(236, 72, 153, 0.2); color: #EC4899; }
 .cal-grid-day.ovulation { background: rgba(45, 212, 191, 0.15); color: #2DD4BF; }
 
 /* КОЛИ КОРИСТУВАЧ ВІДМІТИВ ДЕНЬ (Як у Flo) */

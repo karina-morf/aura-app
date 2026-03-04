@@ -18,7 +18,7 @@ const allScreens = document.querySelectorAll('.main-content');
 let userData = { weight: 0, waterGoal: 0, waterCurrent: 0, stepsToday: 0, distanceToday: 0, caloriesToday: 0, history: {}, customTags: [] };
 let selectedSymptoms = [];
 
-// ⚠️ Твоя ссылка ⚠️
+// ⚠️ Твоє посилання на Google Apps Script ⚠️
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwsLFa7b3cwAbh1YpVMYo4nLjyfkOuDKAAaLRQoAsQiRoMwdYwjW3QwVDGGFE4FVu_I/exec"; 
 
 const currentUserId = tg.initDataUnsafe?.user?.id || 'test_user_' + Math.floor(Math.random() * 1000);
@@ -44,7 +44,7 @@ function checkUser() {
             userData.distanceToday = data.userData.distanceToday || 0;
             userData.caloriesToday = data.userData.caloriesToday || 0;
             
-            // Зберігаємо історію та теги
+            // Зберігаємо історію та власні теги
             userData.history = data.userData.history || {};
             userData.customTags = data.userData.customTags ? data.userData.customTags.split(',') : [];
             
@@ -78,7 +78,7 @@ function checkUser() {
 }
 checkUser();
 
-// --- 2. РЕЄСТРАЦІЯ ---
+// --- 2. РЕЄСТРАЦІЯ ТА РОЗРАХУНОК КБЖВ ---
 btnRegister.addEventListener('click', () => {
     const gender = document.getElementById('gender').value;
     const age = parseInt(document.getElementById('age').value);
@@ -87,7 +87,7 @@ btnRegister.addEventListener('click', () => {
     const targetWeight = parseFloat(document.getElementById('target-weight').value);
     const weeks = parseInt(document.getElementById('weeks').value);
     
-    if(!weight || !height || !targetWeight || !age || !weeks) return tg.showAlert("Заповни всі поля!");
+    if(!weight || !height || !targetWeight || !age || !weeks) return tg.showAlert("Будь ласка, заповни всі поля!");
 
     let bmr = (10 * weight) + (6.25 * height) - (5 * age);
     bmr = gender === 'female' ? bmr - 161 : bmr + 5;
@@ -157,7 +157,7 @@ btnSaveActivity.addEventListener('click', () => {
     sendToServer({ action: "log_activity", userId: currentUserId, steps: steps, distance: distance, calories: calories }).catch(e=>console.error(e));
 });
 
-// --- 5. ЖІНОЧИЙ КАЛЕНДАР ---
+// --- 5. ЖІНОЧИЙ КАЛЕНДАР (Ритм) ---
 function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     document.getElementById('rhythm-setup').classList.add('hidden');
     document.getElementById('rhythm-dashboard').classList.remove('hidden');

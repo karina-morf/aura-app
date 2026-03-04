@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,72 +12,72 @@
 
     <div id="registration-screen" class="screen">
         <div class="brand-header"><span class="logo-icon">✨</span><span class="logo-text">AURA</span></div>
-        <h1 class="main-title">Создай свою<br><span class="text-highlight">Ауру.</span></h1>
-        <p class="subtitle">ИИ рассчитает идеальный план для твоего тела.</p>
+        <h1 class="main-title">Створи свою<br><span class="text-highlight">Ауру.</span></h1>
+        <p class="subtitle">ШІ розрахує ідеальний план для твого тіла.</p>
         
         <div class="form-container">
             <div class="form-group">
-                <label>Пол</label>
+                <label>Стать</label>
                 <select id="gender">
-                    <option value="female">Женский</option>
-                    <option value="male">Мужской</option>
+                    <option value="female">Жіноча</option>
+                    <option value="male">Чоловіча</option>
                 </select>
             </div>
             <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex: 1;"><label>Возраст</label><input type="number" id="age" placeholder="25"></div>
-                <div class="form-group" style="flex: 1;"><label>Рост (см)</label><input type="number" id="height" placeholder="165"></div>
+                <div class="form-group" style="flex: 1;"><label>Вік</label><input type="number" id="age" placeholder="25"></div>
+                <div class="form-group" style="flex: 1;"><label>Зріст (см)</label><input type="number" id="height" placeholder="165"></div>
             </div>
             <div style="display: flex; gap: 10px;">
-                <div class="form-group" style="flex: 1;"><label>Вес сейчас (кг)</label><input type="number" id="weight" placeholder="65"></div>
-                <div class="form-group" style="flex: 1;"><label>Цель (кг)</label><input type="number" id="target-weight" placeholder="55"></div>
+                <div class="form-group" style="flex: 1;"><label>Вага зараз (кг)</label><input type="number" id="weight" placeholder="65"></div>
+                <div class="form-group" style="flex: 1;"><label>Ціль (кг)</label><input type="number" id="target-weight" placeholder="55"></div>
             </div>
             <div class="form-group">
-                <label>За сколько недель хочешь достичь цели?</label>
-                <input type="number" id="weeks" placeholder="Например, 12 (здоровый темп: 1 кг/нед)">
+                <label>За скільки тижнів хочеш досягти цілі?</label>
+                <input type="number" id="weeks" placeholder="Наприклад, 12 (здоровий темп: 1 кг/тиж)">
             </div>
         </div>
-        <button id="btn-register" class="btn-primary">Рассчитать план 🪄</button>
+        <button id="btn-register" class="btn-primary">Розрахувати план 🪄</button>
     </div>
 
     <div id="main-screen" class="screen hidden main-content">
         <div class="header">
-            <h2 id="greeting-name">Привет!</h2>
+            <h2 id="greeting-name">Привіт!</h2>
             <div class="settings-icon">⚙️</div>
         </div>
         <div class="avatar-container">
             <div id="avatar" class="avatar-placeholder"><span class="avatar-emoji">🧘‍♀️</span></div>
-            <div class="mood-badge"><span class="mood-dot"></span> Спокойствие</div>
+            <div class="mood-badge"><span class="mood-dot"></span> Спокій</div>
         </div>
 
         <div class="card nutrition-tracker">
             <div class="card-header">
-                <h3>🍎 План питания</h3>
+                <h3>🍎 План харчування</h3>
                 <span id="plan-kcal" class="highlight-number" style="font-size: 22px;">0 ккал</span>
             </div>
             <div class="activity-grid">
-                <div class="activity-item"><span class="activity-icon">🥩</span><div class="activity-data"><span id="plan-protein" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Белки (г)</span></div></div>
-                <div class="activity-item"><span class="activity-icon">🥑</span><div class="activity-data"><span id="plan-fat" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Жиры (г)</span></div></div>
-                <div class="activity-item"><span class="activity-icon">🥐</span><div class="activity-data"><span id="plan-carbs" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Углеводы</span></div></div>
+                <div class="activity-item"><span class="activity-icon">🥩</span><div class="activity-data"><span id="plan-protein" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Білки (г)</span></div></div>
+                <div class="activity-item"><span class="activity-icon">🥑</span><div class="activity-data"><span id="plan-fat" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Жири (г)</span></div></div>
+                <div class="activity-item"><span class="activity-icon">🥐</span><div class="activity-data"><span id="plan-carbs" class="highlight-number" style="font-size: 18px;">0</span><span class="activity-label">Вуглеводи</span></div></div>
             </div>
         </div>
 
         <div class="card water-tracker">
             <div class="card-header">
-                <h3>💧 Гидратация</h3><span class="status-icon">✓</span>
+                <h3>💧 Гідратація</h3><span class="status-icon">✓</span>
             </div>
             <div class="water-progress">
                 <p class="water-info"><span id="water-current" class="highlight-number">0</span> / <span id="water-goal">0</span> мл</p>
             </div>
-            <button id="btn-water" class="btn-primary btn-small">Выпить 250 мл</button>
+            <button id="btn-water" class="btn-primary btn-small">Випити 250 мл</button>
         </div>
 
         <div class="card activity-tracker">
             <div class="card-header">
-                <h3>🏃‍♀️ Активность</h3>
+                <h3>🏃‍♀️ Активність</h3>
                 <button id="btn-open-activity" class="btn-icon">➕</button>
             </div>
             <div class="activity-grid">
-                <div class="activity-item"><span class="activity-icon">👣</span><div class="activity-data"><span id="stat-steps" class="highlight-number">0</span><span class="activity-label">шагов</span></div></div>
+                <div class="activity-item"><span class="activity-icon">👣</span><div class="activity-data"><span id="stat-steps" class="highlight-number">0</span><span class="activity-label">кроків</span></div></div>
                 <div class="activity-item"><span class="activity-icon">🔥</span><div class="activity-data"><span id="stat-kcal" class="highlight-number">0</span><span class="activity-label">ккал</span></div></div>
                 <div class="activity-item"><span class="activity-icon">📍</span><div class="activity-data"><span id="stat-distance" class="highlight-number">0</span><span class="activity-label">км</span></div></div>
             </div>
@@ -86,7 +86,7 @@
 
     <div id="calendar-screen" class="screen hidden main-content">
         <div class="header">
-            <h1 class="main-title">Твой <span class="text-highlight">Ритм</span></h1>
+            <h1 class="main-title">Твій <span class="text-highlight">Ритм</span></h1>
             <button id="btn-open-full-cal" class="btn-icon" style="width: 40px; height: 40px; font-size: 20px;">📅</button>
         </div>
         
@@ -97,7 +97,7 @@
             <div class="cycle-circle-container">
                 <div class="cycle-circle" id="cycle-circle">
                     <span class="cycle-value" id="cycle-days-main">...</span>
-                    <span class="cycle-label" id="cycle-text-main">расчет...</span>
+                    <span class="cycle-label" id="cycle-text-main">розрахунок...</span>
                 </div>
             </div>
 
@@ -118,76 +118,76 @@
                 <p id="phase-desc" style="color: var(--text-muted); font-size: 14px; margin-top: 5px;">...</p>
                 <div id="phase-advice" class="mood-badge hidden" style="margin-top: 15px; background: rgba(59, 130, 246, 0.2); border-color: #3B82F6;">
                     <span class="mood-dot" style="background-color: #3B82F6; box-shadow: 0 0 10px #3B82F6;"></span> 
-                    <span id="advice-text">+200 ккал сегодня. Телу нужно больше энергии.</span>
+                    <span id="advice-text">+200 ккал сьогодні. Тілу потрібно більше енергії.</span>
                 </div>
             </div>
         </div>
 
         <div id="rhythm-setup" class="card">
-            <h3>🌸 Анализ твоих циклов</h3>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px; margin-bottom: 15px;">Введи даты последних 3 циклов, чтобы ИИ максимально точно рассчитал твой персональный календарь.</p>
+            <h3>🌸 Аналіз твоїх циклів</h3>
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px; margin-bottom: 15px;">Введи дати останніх 3 циклів, щоб ШІ максимально точно розрахував твій персональний календар.</p>
             
             <div class="form-container">
                 <div class="cycle-row">
-                    <label style="font-size: 12px; color: #3B82F6;">Последний цикл</label>
+                    <label style="font-size: 12px; color: #3B82F6;">Останній цикл</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="date" id="c1-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                         <input type="date" id="c1-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                     </div>
                 </div>
                 <div class="cycle-row">
-                    <label style="font-size: 12px;">Цикл 2 месяца назад</label>
+                    <label style="font-size: 12px;">Цикл 2 місяці тому</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="date" id="c2-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                         <input type="date" id="c2-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                     </div>
                 </div>
                 <div class="cycle-row">
-                    <label style="font-size: 12px;">Цикл 3 месяца назад</label>
+                    <label style="font-size: 12px;">Цикл 3 місяці тому</label>
                     <div style="display: flex; gap: 10px;">
                         <input type="date" id="c3-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                         <input type="date" id="c3-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
                     </div>
                 </div>
             </div>
-            <button id="btn-save-cycle" class="btn-primary btn-small">Создать мой календарь 🪄</button>
+            <button id="btn-save-cycle" class="btn-primary btn-small">Створити мій календар 🪄</button>
         </div>
     </div>
 
     <div id="scanner-screen" class="screen hidden main-content">
-        <h1 class="main-title">Aura <span class="text-highlight">Lens</span></h1>
+        <h1 class="main-title">Aura <span class="text-highlight">Фокус</span></h1>
         <div class="card" style="text-align: center;">
             <div class="avatar-placeholder" style="margin: 0 auto 20px;">📷</div>
-            <p>Наведи камеру на еду, и ИИ рассчитает макронутриенты.</p>
-            <button class="btn-primary btn-small">Открыть камеру</button>
+            <p>Наведи камеру на їжу, і ШІ розрахує макронутрієнти.</p>
+            <button class="btn-primary btn-small">Відкрити камеру</button>
         </div>
     </div>
 
     <div id="journal-screen" class="screen hidden main-content">
-        <h1 class="main-title">Дневник <span class="text-highlight">Эмоций</span></h1>
+        <h1 class="main-title">Щоденник <span class="text-highlight">Емоцій</span></h1>
         <div class="card">
-            <h3>📖 Заметки</h3>
-            <textarea placeholder="Как ты себя чувствуешь сегодня?" style="width: 100%; margin-top: 10px;"></textarea>
-            <button class="btn-primary btn-small">Сохранить</button>
+            <h3>📖 Нотатки</h3>
+            <textarea placeholder="Як ти себе почуваєш сьогодні?" style="width: 100%; margin-top: 10px;"></textarea>
+            <button class="btn-primary btn-small">Зберегти</button>
         </div>
     </div>
 
     <nav id="bottom-nav" class="bottom-nav hidden">
-        <button class="nav-item active" data-target="main-screen"><span class="nav-icon">🪐</span><span class="nav-text">Орбита</span></button>
+        <button class="nav-item active" data-target="main-screen"><span class="nav-icon">🪐</span><span class="nav-text">Орбіта</span></button>
         <button class="nav-item" data-target="calendar-screen"><span class="nav-icon">🌸</span><span class="nav-text">Ритм</span></button>
-        <button class="nav-item" data-target="scanner-screen"><span class="nav-icon">📷</span><span class="nav-text">Lens</span></button>
-        <button class="nav-item" data-target="journal-screen"><span class="nav-icon">📖</span><span class="nav-text">Дневник</span></button>
+        <button class="nav-item" data-target="scanner-screen"><span class="nav-icon">📷</span><span class="nav-text">Фокус</span></button>
+        <button class="nav-item" data-target="journal-screen"><span class="nav-icon">📖</span><span class="nav-text">Щоденник</span></button>
     </nav>
 
     <div id="activity-modal" class="modal hidden">
         <div class="modal-content card">
-            <div class="card-header"><h3>Добавить активность</h3><button id="btn-close-activity" class="btn-icon">✖</button></div>
+            <div class="card-header"><h3>Додати активність</h3><button id="btn-close-activity" class="btn-icon">✖</button></div>
             <div class="form-container">
-                <div class="form-group"><label>Шаги за сегодня</label><input type="number" id="input-steps" placeholder="8500"></div>
+                <div class="form-group"><label>Кроки за сьогодні</label><input type="number" id="input-steps" placeholder="8500"></div>
                 <div class="form-group"><label>Пройдено (км)</label><input type="number" id="input-distance" placeholder="5.2"></div>
-                <div class="form-group"><label>Сожжено ккал</label><input type="number" id="input-kcal" placeholder="350"></div>
+                <div class="form-group"><label>Спалено ккал</label><input type="number" id="input-kcal" placeholder="350"></div>
             </div>
-            <button id="btn-save-activity" class="btn-primary">Сохранить</button>
+            <button id="btn-save-activity" class="btn-primary">Зберегти</button>
         </div>
     </div>
 
@@ -201,7 +201,7 @@
             <p style="font-size: 13px; color: var(--text-muted); text-align: center; margin-top: -10px; margin-bottom: 15px;">Натискай на дати, щоб відмітити дні місячних.</p>
             
             <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 12px; color: var(--text-muted); margin-bottom: 10px; font-weight: bold;">
-                <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+                <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
             </div>
             <div id="full-calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; text-align: center;">
                 </div>
@@ -222,7 +222,7 @@
             <div id="day-info-symptoms" style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;">
                 </div>
             
-            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Замітки:</p>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Нотатки:</p>
             <p id="day-info-note" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; font-size: 14px; margin: 0; border: 1px solid rgba(255,255,255,0.1);">Немає записів</p>
             
             <button id="btn-edit-past-symptoms" class="btn-primary btn-small" style="width: 100%; margin-top: 15px; background: rgba(255,255,255,0.1); color: white;">✏️ Редагувати цей день</button>
@@ -250,7 +250,7 @@
                 <button id="btn-add-custom-tag" class="btn-primary btn-small" style="margin-top: 0; width: 50px; padding: 0; border-radius: 12px;">➕</button>
             </div>
 
-            <textarea id="symptom-note" placeholder="Додай свою замітку або опиши день..." style="margin-top: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; height: 80px;"></textarea>
+            <textarea id="symptom-note" placeholder="Додай свою нотатку або опиши день..." style="margin-top: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; height: 80px;"></textarea>
             
             <button id="btn-save-symptoms" class="btn-primary" style="margin-top: 20px; background: #3B82F6;">Зберегти симптоми</button>
         </div>
