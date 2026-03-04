@@ -233,7 +233,14 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
         div.innerHTML = `<span class="day-name">${daysNames[date.getDay()]}</span><span class="day-number">${date.getDate()}</span>`;
         strip.appendChild(div);
     }
-    setTimeout(() => { if (todayElement) todayElement.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' }); }, 100);
+    
+    // НАДІЙНИЙ МАТЕМАТИЧНИЙ СКРОЛ ПРИ ЗАВАНТАЖЕННІ
+    setTimeout(() => { 
+        if (todayElement && strip) { 
+            const scrollPos = todayElement.offsetLeft - (strip.offsetWidth / 2) + (todayElement.offsetWidth / 2);
+            strip.scrollTo({ left: scrollPos, behavior: 'auto' });
+        } 
+    }, 100);
 }
 
 // Початкове налаштування циклу
@@ -547,14 +554,16 @@ navItems.forEach(item => {
         document.getElementById(targetId).classList.remove('hidden');
         tg.HapticFeedback.selectionChanged();
 
-        // ФІКС КАЛЕНДАРЯ: Скролимо до "Сьогодні", коли відкриваємо екран "Ритм"
+        // НАДІЙНИЙ ФІКС КАЛЕНДАРЯ (Математичний скрол)
         if (targetId === 'calendar-screen') {
             setTimeout(() => {
+                const strip = document.getElementById('calendar-strip');
                 const todayEl = document.querySelector('.calendar-day.today');
-                if (todayEl) {
-                    todayEl.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                if (strip && todayEl) {
+                    const scrollPos = todayEl.offsetLeft - (strip.offsetWidth / 2) + (todayEl.offsetWidth / 2);
+                    strip.scrollTo({ left: scrollPos, behavior: 'auto' });
                 }
-            }, 50); // Затримка 50мс, щоб екран встиг стати видимим
+            }, 50); 
         }
     });
 });
