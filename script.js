@@ -78,7 +78,7 @@ function checkUser() {
 }
 checkUser();
 
-// --- 2. РЕЄСТРАЦІЯ (Без змін) ---
+// --- 2. РЕЄСТРАЦІЯ ---
 btnRegister.addEventListener('click', () => {
     const gender = document.getElementById('gender').value;
     const age = parseInt(document.getElementById('age').value);
@@ -199,7 +199,7 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
         phaseName = "Менструальна фаза 🩸";
         phaseDesc = "Час очищення та відпочинку. Обирай легкі прогулянки.";
     } else if (currentDayOfCycle > periodDuration && currentDayOfCycle <= 13) {
-        phaseName = "Фолікулярная фаза 🌱";
+        phaseName = "Фолікулярна фаза 🌱";
         phaseDesc = "Енергія росте! Чудовий час для активних тренувань.";
     } else if (currentDayOfCycle >= 14 && currentDayOfCycle <= 16) {
         phaseName = "Овуляція 🌸";
@@ -262,6 +262,49 @@ btnSaveCycle.addEventListener('click', () => {
 });
 
 // --- СИМПТОМИ ТА ТЕГИ ---
+let currentSymptomDate = new Date(); 
+const symptomsModal = document.getElementById('symptoms-modal');
+const dayInfoModal = document.getElementById('day-info-modal');
+
+// Функція відкриття вікна симптомів на конкретну дату
+function openSymptomsModal(dateObj) {
+    currentSymptomDate = dateObj; 
+    const dateStr = dateObj.toDateString();
+    
+    let displayDate = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+    document.getElementById('symptoms-modal-title').innerText = dateObj.toDateString() === new Date().toDateString() ? "Як ти сьогодні?" : displayDate;
+
+    // Скидаємо теги
+    selectedSymptoms = [];
+    document.querySelectorAll('.symptom-chip').forEach(c => c.classList.remove('active'));
+    document.getElementById('symptom-note').value = "";
+
+    // Підтягуємо історію
+    if (userData.history[dateStr]) {
+        if (userData.history[dateStr].symptoms) {
+            selectedSymptoms = userData.history[dateStr].symptoms.split(',');
+            selectedSymptoms.forEach(sym => {
+                let chip = document.querySelector(`.symptom-chip[data-sym="${sym}"]`);
+                if (chip) chip.classList.add('active');
+            });
+        }
+        document.getElementById('symptom-note').value = userData.history[dateStr].note || "";
+    }
+
+    symptomsModal.classList.remove('hidden');
+    tg.HapticFeedback.impactOccurred('light');
+}
+
+// Кнопка "+" на головному екрані
+document.getElementById('btn-open-symptoms-today').addEventListener('click', () => {
+    openSymptomsModal(new Date()); 
+});
+
+document.getElementById('btn-close-symptoms').addEventListener('click', () => {
+    symptomsModal.classList.add('hidden');
+});
+
+// Логіка кліків по тегах
 function toggleSymptom(chip, sym) {
     chip.classList.toggle('active');
     if (selectedSymptoms.includes(sym)) selectedSymptoms = selectedSymptoms.filter(s => s !== sym);
@@ -282,10 +325,12 @@ function renderCustomTags() {
     }
 }
 
+// Вішаємо кліки на стандартні теги
 document.querySelectorAll('.symptom-chip:not(.custom)').forEach(chip => {
     chip.addEventListener('click', () => toggleSymptom(chip, chip.getAttribute('data-sym')));
 });
 
+// Додавання власного тегу
 document.getElementById('btn-add-custom-tag').addEventListener('click', () => {
     const input = document.getElementById('input-custom-tag');
     const newTag = input.value.trim();
@@ -293,26 +338,34 @@ document.getElementById('btn-add-custom-tag').addEventListener('click', () => {
     if (!userData.customTags.includes(newTag)) {
         userData.customTags.push(newTag);
         renderCustomTags();
+        let newChip = document.querySelector(`.symptom-chip[data-sym="${newTag}"]`);
+        if(newChip) toggleSymptom(newChip, newTag);
+        
         sendToServer({ action: "save_custom_tags", userId: currentUserId, tags: userData.customTags.join(',') });
     }
     input.value = "";
     tg.HapticFeedback.impactOccurred('light');
 });
 
+// ЗБЕРЕЖЕННЯ СИМПТОМІВ
 document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     const note = document.getElementById('symptom-note').value;
     const btn = document.getElementById('btn-save-symptoms');
     btn.innerText = "Зберігаємо...";
     
-    // Одразу зберігаємо локально, щоб календар "бачив" це без перезавантаження
-    const todayStr = new Date().toDateString();
-    userData.history[todayStr] = { symptoms: selectedSymptoms.join(','), note: note };
+    const dateStr = currentSymptomDate.toDateString();
+    userData.history[dateStr] = { symptoms: selectedSymptoms.join(','), note: note };
 
-    sendToServer({ action: "log_symptoms", userId: currentUserId, symptoms: selectedSymptoms.join(','), note: note
+    sendToServer({ 
+        action: "log_symptoms", 
+        userId: currentUserId, 
+        dateStr: currentSymptomDate.toISOString(), 
+        symptoms: selectedSymptoms.join(','), 
+        note: note
     }).then(() => {
-        btn.innerText = "Збережено ✓";
+        btn.innerText = "Зберегти симптоми"; 
+        symptomsModal.classList.add('hidden'); 
         tg.HapticFeedback.notificationOccurred('success');
-        setTimeout(() => btn.innerText = "Зберегти симптоми", 2000);
     });
 });
 
@@ -321,6 +374,7 @@ let calendarMode = 'view'; // 'view' або 'edit'
 const fullCalModal = document.getElementById('full-calendar-modal');
 const btnOpenInteractiveCal = document.getElementById('btn-open-interactive-cal');
 const btnOpenFullCal = document.getElementById('btn-open-full-cal');
+let viewedDateObj = new Date(); // Дата для вікна інфо
 
 if(btnOpenInteractiveCal) {
     btnOpenInteractiveCal.addEventListener('click', () => {
@@ -407,6 +461,7 @@ function renderFullCalendar() {
 
 // ВІКНО ІНФОРМАЦІЇ ПРО ДЕНЬ
 function openDayInfo(dateObj, cycleDay, pDur) {
+    viewedDateObj = dateObj; 
     const dateStr = dateObj.toDateString();
     const dayData = userData.history[dateStr] || { symptoms: "", note: "" };
 
@@ -421,10 +476,8 @@ function openDayInfo(dateObj, cycleDay, pDur) {
     symContainer.innerHTML = "";
     if (dayData.symptoms) {
         dayData.symptoms.split(',').forEach(sym => {
-            // Шукаємо ім'я тегу по дата-атрибуту на головному екрані
             let originalChip = document.querySelector(`.symptom-chip[data-sym="${sym}"]`);
             let symName = originalChip ? originalChip.innerText : sym;
-            
             let chip = document.createElement('div');
             chip.className = 'symptom-chip active';
             chip.style.pointerEvents = 'none';
@@ -444,7 +497,13 @@ document.getElementById('btn-close-day-info').addEventListener('click', () => {
     document.getElementById('day-info-modal').classList.add('hidden');
 });
 
-// Кнопка збереження для режиму 'edit'
+// Кнопка "Редагувати цей день" всередині вікна інформації
+document.getElementById('btn-edit-past-symptoms').addEventListener('click', () => {
+    document.getElementById('day-info-modal').classList.add('hidden'); 
+    openSymptomsModal(viewedDateObj); 
+});
+
+// Кнопка збереження для режиму 'edit' (місячні)
 document.getElementById('btn-save-calendar-dates').addEventListener('click', () => {
     const selectedElements = document.querySelectorAll('.cal-grid-day.user-selected');
     if (selectedElements.length === 0) return tg.showAlert("Відміть хоча б один день!");

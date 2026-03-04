@@ -84,7 +84,7 @@
         </div>
     </div>
 
-<div id="calendar-screen" class="screen hidden main-content">
+    <div id="calendar-screen" class="screen hidden main-content">
         <div class="header">
             <h1 class="main-title">Твой <span class="text-highlight">Ритм</span></h1>
             <button id="btn-open-full-cal" class="btn-icon" style="width: 40px; height: 40px; font-size: 20px;">📅</button>
@@ -103,24 +103,14 @@
 
             <button id="btn-open-interactive-cal" class="btn-primary" style="background: rgba(236, 72, 153, 0.15); color: #EC4899; border: 1px solid rgba(236, 72, 153, 0.5); margin-top: 0; margin-bottom: 20px;">Відмітити в календарі 🩸</button>
 
-            <div class="card" style="margin-bottom: 20px;">
-                <h3 style="margin-bottom: 10px;">Як ти себе почуваєш?</h3>
-                <div class="symptoms-grid" id="symptoms-container">
-                    <div class="symptom-chip" data-sym="headache">🤕 Головний біль</div>
-                    <div class="symptom-chip" data-sym="cramps">🩸 Спазми</div>
-                    <div class="symptom-chip" data-sym="tired">😴 Втома</div>
-                    <div class="symptom-chip" data-sym="sad">😔 Сум</div>
-                    <div class="symptom-chip" data-sym="hungry">🍔 Жор</div>
-                    <div class="symptom-chip" data-sym="energy">⚡️ Енергія</div>
+            <div style="margin-bottom: 20px;">
+                <h3 style="font-size: 16px; margin-bottom: 10px;">Мої щоденні записи</h3>
+                <div style="display: flex; gap: 10px; overflow-x: auto; padding-bottom: 5px;">
+                    <div id="btn-open-symptoms-today" class="card" style="flex: 0 0 110px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; padding: 15px; border: 2px dashed rgba(236, 72, 153, 0.4); background: rgba(236, 72, 153, 0.05); text-align: center;">
+                        <span style="font-size: 28px; color: #EC4899; margin-bottom: 5px; line-height: 1;">+</span>
+                        <span style="font-size: 11px; color: var(--text-main); font-weight: 600;">Додати дані про симптоми</span>
+                    </div>
                 </div>
-                
-                <div style="display: flex; gap: 8px; margin-top: 15px;">
-                    <input type="text" id="input-custom-tag" placeholder="Свій стан (напр. ☕️ Хочу кави)" style="padding: 12px; font-size: 14px; flex: 1; border-radius: 12px; color-scheme: dark;">
-                    <button id="btn-add-custom-tag" class="btn-primary btn-small" style="margin-top: 0; width: 50px; padding: 0;">➕</button>
-                </div>
-
-                <textarea id="symptom-note" placeholder="Додай свою замітку або опиши день..." style="margin-top: 15px; background: rgba(0,0,0,0.2); border: none; padding: 12px; border-radius: 12px;"></textarea>
-                <button id="btn-save-symptoms" class="btn-primary btn-small">Зберегти симптоми</button>
             </div>
 
             <div id="phase-result" class="card">
@@ -201,7 +191,7 @@
         </div>
     </div>
 
-<div id="full-calendar-modal" class="modal hidden">
+    <div id="full-calendar-modal" class="modal hidden">
         <div class="modal-content card" style="max-width: 350px; padding: 20px;">
             <div class="card-header" style="margin-bottom: 20px;">
                 <h3 id="full-cal-month" style="text-transform: capitalize; font-size: 20px;">Місяць</h3>
@@ -219,6 +209,7 @@
             <button id="btn-save-calendar-dates" class="btn-primary" style="margin-top: 25px; background: #EC4899; box-shadow: 0 0 20px rgba(236, 72, 153, 0.4);">Зберегти дати</button>
         </div>
     </div>
+
     <div id="day-info-modal" class="modal hidden">
         <div class="modal-content card" style="max-width: 320px;">
             <div class="card-header" style="margin-bottom: 10px;">
@@ -233,8 +224,38 @@
             
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 5px;">Замітки:</p>
             <p id="day-info-note" style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; font-size: 14px; margin: 0; border: 1px solid rgba(255,255,255,0.1);">Немає записів</p>
+            
+            <button id="btn-edit-past-symptoms" class="btn-primary btn-small" style="width: 100%; margin-top: 15px; background: rgba(255,255,255,0.1); color: white;">✏️ Редагувати цей день</button>
         </div>
     </div>
+
+    <div id="symptoms-modal" class="modal hidden">
+        <div class="modal-content card" style="max-width: 350px; background: #0A1128; border: 1px solid rgba(255,255,255,0.1);">
+            <div class="card-header" style="margin-bottom: 15px;">
+                <h3 id="symptoms-modal-title">Як ти себе почуваєш?</h3>
+                <button id="btn-close-symptoms" class="btn-icon">✖</button>
+            </div>
+            
+            <div class="symptoms-grid" id="symptoms-container">
+                <div class="symptom-chip" data-sym="headache">🤕 Головний біль</div>
+                <div class="symptom-chip" data-sym="cramps">🩸 Спазми</div>
+                <div class="symptom-chip" data-sym="tired">😴 Втома</div>
+                <div class="symptom-chip" data-sym="sad">😔 Сум</div>
+                <div class="symptom-chip" data-sym="hungry">🍔 Жор</div>
+                <div class="symptom-chip" data-sym="energy">⚡️ Енергія</div>
+            </div>
+            
+            <div style="display: flex; gap: 8px; margin-top: 20px;">
+                <input type="text" id="input-custom-tag" placeholder="Моя помітка (напр. ☕️ Кава)" style="padding: 12px; font-size: 14px; flex: 1; border-radius: 12px; color-scheme: dark; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05);">
+                <button id="btn-add-custom-tag" class="btn-primary btn-small" style="margin-top: 0; width: 50px; padding: 0; border-radius: 12px;">➕</button>
+            </div>
+
+            <textarea id="symptom-note" placeholder="Додай свою замітку або опиши день..." style="margin-top: 10px; background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.05); padding: 12px; border-radius: 12px; height: 80px;"></textarea>
+            
+            <button id="btn-save-symptoms" class="btn-primary" style="margin-top: 20px; background: #3B82F6;">Зберегти симптоми</button>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
