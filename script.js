@@ -715,15 +715,17 @@ if (btnAddFood) {
         planFatEl.innerText = Math.max(0, currentFat - foodFat);
         planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
 
-        // Я ПРИБРАВ ДОДАВАННЯ В АКТИВНІСТЬ 🔥 (тепер кроки та спалені ккал не будуть ламатися)
+        // ТУТ БУЛА ПОМИЛКА: Я ПРИБРАВ ДОДАВАННЯ В АКТИВНІСТЬ 🔥 
+        // Тепер їжа не буде перетворюватися на "спалені" калорії!
         
         // Повертаємось на Орбіту
         document.querySelector('.nav-item[data-target="main-screen"]').click();
         
-        // Скидаємо сканер
+        // Скидаємо сканер для наступного фото
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
         cameraInput.value = '';
+        weightInput.value = 150; // Скидаємо вагу на стандартну
         
         tg.HapticFeedback.notificationOccurred('success');
         tg.showAlert("Страву додано! Ліміти оновлено 🪐");
