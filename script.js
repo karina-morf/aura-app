@@ -567,6 +567,7 @@ navItems.forEach(item => {
         }
     });
 });
+
 // --- 7. AURA ФОКУС (СКАНЕР ЇЖІ) ---
 const cameraInput = document.getElementById('camera-input');
 const uploadArea = document.getElementById('scanner-upload-area');
@@ -616,7 +617,7 @@ if (cameraInput) {
                 resultArea.classList.remove('hidden');
                 
                 // Скидаємо вагу на дефолтні 150г при новому скануванні
-                weightInput.value = 150;
+                if (weightInput) weightInput.value = 150;
                 recalculateMacros();
                 
                 tg.HapticFeedback.notificationOccurred('success');
@@ -662,60 +663,7 @@ if (btnAddFood) {
         planFatEl.innerText = Math.max(0, currentFat - foodFat);
         planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
 
-        // Оновлюємо загальну статистику активності
-        userData.caloriesToday += foodKcal;
-        document.getElementById('stat-kcal').innerText = userData.caloriesToday;
-        
-        // Повертаємось на Орбіту
-        document.querySelector('.nav-item[data-target="main-screen"]').click();
-        
-        // Скидаємо сканер
-        resultArea.classList.add('hidden');
-        uploadArea.classList.remove('hidden');
-        cameraInput.value = '';
-        
-        tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Страву додано! Ліміти оновлено 🪐");
-    });
-}
-
-// Кнопка "Сфотографувати ще раз"
-if (btnRetakePhoto) {
-    btnRetakePhoto.addEventListener('click', () => {
-        resultArea.classList.add('hidden');
-        uploadArea.classList.remove('hidden');
-        cameraInput.value = ''; // Скидаємо минулий файл
-        tg.HapticFeedback.selectionChanged();
-    });
-}
-
-/// Кнопка "Додати в Орбіту"
-if (btnAddFood) {
-    btnAddFood.addEventListener('click', () => {
-        // Беремо поточні розраховані значення з екрану
-        const foodKcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
-        const foodProtein = parseInt(document.getElementById('food-protein').innerText) || 0;
-        const foodFat = parseInt(document.getElementById('food-fat').innerText) || 0;
-        const foodCarbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
-        
-        // Беремо залишок з головного екрану
-        const planKcalEl = document.getElementById('plan-kcal');
-        const planProteinEl = document.getElementById('plan-protein');
-        const planFatEl = document.getElementById('plan-fat');
-        const planCarbsEl = document.getElementById('plan-carbs');
-        
-        let currentKcal = parseInt(planKcalEl.innerText) || 0;
-        let currentProtein = parseInt(planProteinEl.innerText) || 0;
-        let currentFat = parseInt(planFatEl.innerText) || 0;
-        let currentCarbs = parseInt(planCarbsEl.innerText) || 0;
-        
-        // 1. ВІДНІМАЄМО З'ЇДЕНЕ ВІД ПЛАНУ
-        planKcalEl.innerText = `${Math.max(0, currentKcal - foodKcal)} ккал`;
-        planProteinEl.innerText = Math.max(0, currentProtein - foodProtein);
-        planFatEl.innerText = Math.max(0, currentFat - foodFat);
-        planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
-
-        // 2. ВІДПРАВЛЯЄМО В GOOGLE БАЗУ (Щоб не зникало при перезавантаженні)
+        // ВІДПРАВЛЯЄМО В GOOGLE БАЗУ (Щоб не зникало при перезавантаженні)
         sendToServer({ 
             action: "log_food", 
             userId: currentUserId, 
