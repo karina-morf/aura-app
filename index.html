@@ -158,8 +158,14 @@
     </div>
 
     <div id="scanner-screen" class="screen hidden main-content">
-        <div class="header" style="margin-bottom: 10px;">
-            <h1 class="main-title">Aura <span class="text-highlight">Фокус</span></h1>
+        <div class="header" style="margin-bottom: 10px; flex-direction: column;">
+            <h1 class="main-title" style="align-self: flex-start;">Aura <span class="text-highlight">Фокус</span></h1>
+            
+            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 15px; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 10px;">
+                <button id="btn-focus-prev" class="btn-icon" style="background: transparent;">◀</button>
+                <span id="focus-date-text" style="font-weight: 600;">Сьогодні</span>
+                <button id="btn-focus-next" class="btn-icon" style="background: transparent;">▶</button>
+            </div>
         </div>
 
         <div id="scanner-upload-area" class="card" style="text-align: center; padding: 40px 20px; border: 2px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05);">
@@ -197,20 +203,28 @@
                     </div>
                 </div>
 
-                <div class="activity-grid" style="margin-top: 0; margin-bottom: 20px;">
+                <div class="activity-grid" style="margin-top: 0; margin-bottom: 15px;">
                     <div class="activity-item" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2);"><span class="activity-icon">🥩</span><div class="activity-data"><span id="food-protein" class="highlight-number" style="font-size: 18px; color: #EC4899;">14</span><span class="activity-label">Білки</span></div></div>
                     <div class="activity-item" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);"><span class="activity-icon">🥑</span><div class="activity-data"><span id="food-fat" class="highlight-number" style="font-size: 18px; color: #F59E0B;">18</span><span class="activity-label">Жири</span></div></div>
                     <div class="activity-item" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);"><span class="activity-icon">🥐</span><div class="activity-data"><span id="food-carbs" class="highlight-number" style="font-size: 18px; color: #10B981;">32</span><span class="activity-label">Вуглеводи</span></div></div>
                 </div>
 
-                <button id="btn-add-food" class="btn-primary" style="margin-top: 0; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);">Додати в Орбіту 🍽</button>
+                <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 10px 0;">Прийом їжі:</p>
+                <div id="meal-tags-container" style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;">
+                    <div class="symptom-chip active" data-meal="Сніданок">Сніданок</div>
+                    <div class="symptom-chip" data-meal="Обід">Обід</div>
+                    <div class="symptom-chip" data-meal="Вечеря">Вечеря</div>
+                    <div class="symptom-chip" data-meal="Перекус">Перекус</div>
+                </div>
+
+                <button id="btn-add-food" class="btn-primary" style="margin-top: 0; box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);">Додати в Журнал 🍽</button>
                 <button id="btn-retake-photo" class="btn-primary btn-small" style="background: transparent; color: var(--text-muted); box-shadow: none; margin-top: 5px;">Інше фото</button>
             </div>
         </div>
 
         <div id="food-history-container" style="margin-top: 25px; padding-bottom: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="font-size: 18px; margin: 0;">Сьогоднішнє меню</h3>
+                <h3 style="font-size: 18px; margin: 0;">Журнал Харчування</h3>
             </div>
             
             <div id="food-history-list" style="display: flex; flex-direction: column; gap: 10px;">
