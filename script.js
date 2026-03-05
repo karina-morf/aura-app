@@ -692,13 +692,13 @@ if (btnRetakePhoto) {
 // Кнопка "Додати в Орбіту"
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
-        // 1. Беремо макроси зі сканера (те, що розпізнав ШІ)
+        // Беремо поточні розраховані значення з екрану
         const foodKcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
         const foodProtein = parseInt(document.getElementById('food-protein').innerText) || 0;
         const foodFat = parseInt(document.getElementById('food-fat').innerText) || 0;
         const foodCarbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
         
-        // 2. Беремо поточний залишок з головного екрану "Орбіта"
+        // Беремо залишок з головного екрану
         const planKcalEl = document.getElementById('plan-kcal');
         const planProteinEl = document.getElementById('plan-protein');
         const planFatEl = document.getElementById('plan-fat');
@@ -709,20 +709,18 @@ if (btnAddFood) {
         let currentFat = parseInt(planFatEl.innerText) || 0;
         let currentCarbs = parseInt(planCarbsEl.innerText) || 0;
         
-        // 3. Віднімаємо з'їдене (Math.max не дасть піти в мінус, якщо ти переїла)
+        // Віднімаємо з'їдене (залишок зменшується!)
         planKcalEl.innerText = `${Math.max(0, currentKcal - foodKcal)} ккал`;
         planProteinEl.innerText = Math.max(0, currentProtein - foodProtein);
         planFatEl.innerText = Math.max(0, currentFat - foodFat);
         planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
 
-        // 4. Оновлюємо статистику (щоб бачити, скільки всього за день з'їдено)
-        userData.caloriesToday += foodKcal;
-        document.getElementById('stat-kcal').innerText = userData.caloriesToday;
+        // Я ПРИБРАВ ДОДАВАННЯ В АКТИВНІСТЬ 🔥 (тепер кроки та спалені ккал не будуть ламатися)
         
-        // 5. Переходимо на головний екран
+        // Повертаємось на Орбіту
         document.querySelector('.nav-item[data-target="main-screen"]').click();
         
-        // 6. Скидаємо сканер для наступного фото
+        // Скидаємо сканер
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
         cameraInput.value = '';
