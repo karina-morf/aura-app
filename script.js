@@ -15,14 +15,14 @@ const btnSaveActivity = document.getElementById('btn-save-activity');
 const navItems = document.querySelectorAll('.nav-item');
 const allScreens = document.querySelectorAll('.main-content');
 
-// --- ОНОВЛЕНИЙ ОБ'ЄКТ КОРИСТУВАЧА ---
+// --- ОБ'ЄКТ КОРИСТУВАЧА ---
 let userData = { 
     weight: 0, waterGoal: 0, waterCurrent: 0, 
     stepsToday: 0, distanceToday: 0, burnedKcalToday: 0, // Фітнес
     goalKcal: 0, goalProtein: 0, goalFat: 0, goalCarbs: 0, // Цілі БЖВ
     consumedKcalToday: 0, consumedProtein: 0, consumedFat: 0, consumedCarbs: 0, // Спожито їжі
     history: {}, customTags: [],
-    foodHistory: {} // НОВЕ: Історія по датах
+    foodHistory: {} // Історія по датах
 };
 let selectedSymptoms = [];
 
@@ -86,7 +86,6 @@ function checkUser() {
             userData.distanceToday = data.userData.distanceToday || 0;
             userData.burnedKcalToday = data.userData.caloriesToday || 0; 
             
-            // Завантажуємо цілі БЖВ з бази даних
             userData.goalKcal = data.userData.dailyKcal || 0;
             userData.goalProtein = data.userData.protein || 0;
             userData.goalFat = data.userData.fat || 0;
@@ -95,7 +94,6 @@ function checkUser() {
             userData.history = data.userData.history || {};
             userData.customTags = data.userData.customTags ? data.userData.customTags.split(',') : [];
             
-            // Завантажуємо їжу з бази
             userData.foodHistory = {};
             for (let d in userData.history) {
                 if (userData.history[d].foodLog) {
@@ -574,10 +572,11 @@ navItems.forEach(item => {
 let focusCurrentDate = new Date(); 
 let selectedMealTag = "Сніданок"; 
 let editingFoodId = null;
+let currentScanMode = 'food'; // За замовчуванням скануємо страву
 
 const focusDatePicker = document.getElementById('focus-date-picker');
+const scanHint = document.getElementById('scan-hint');
 
-// Встановлюємо сьогоднішню дату в нативний календар при запуску
 if (focusDatePicker) {
     focusDatePicker.valueAsDate = new Date();
 }
@@ -595,7 +594,6 @@ function updateFocusDateUI() {
     renderFoodHistory();
 }
 
-// Обробка вибору дати з календаря
 if (focusDatePicker) {
     focusDatePicker.addEventListener('change', (e) => {
         if (e.target.value) {
@@ -606,12 +604,32 @@ if (focusDatePicker) {
     });
 }
 
+// Логіка кнопок "Прийом їжі"
 document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
         document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         selectedMealTag = chip.getAttribute('data-meal');
         tg.HapticFeedback.selectionChanged();
+    });
+});
+
+// Логіка кнопок "Режим сканування"
+document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        
+        currentScanMode = chip.getAttribute('data-mode');
+        tg.HapticFeedback.selectionChanged();
+
+        if (currentScanMode === 'food') {
+            scanHint.innerText = "ШІ проаналізує страву та розрахує порцію.";
+        } else if (currentScanMode === 'label') {
+            scanHint.innerText = "Сфотографуй таблицю КБЖВ на етикетці (ШІ знайде дані на 100г).";
+        } else if (currentScanMode === 'barcode') {
+            scanHint.innerText = "Сфотографуй штрихкод або упаковку продукту.";
+        }
     });
 });
 
@@ -677,30 +695,84 @@ const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
 const weightInput = document.getElementById('food-weight-input');
 
-let baseWeight = 150; let baseKcal = 340; let baseProtein = 14; let baseFat = 18; let baseCarbs = 32;
+let baseWeight = 150; let baseKcal = 0; let baseProtein = 0; let baseFat = 0; let baseCarbs = 0;
+
+// Стиснення фото та запит до Gemini
+function compressImageAndSend(file) {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = event => {
+        foodPreview.src = event.target.result; 
+        
+        const img = new Image();
+        img.src = event.target.result;
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800; 
+            const scaleSize = MAX_WIDTH / img.width;
+            canvas.width = MAX_WIDTH;
+            canvas.height = img.height * scaleSize;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            const b64Data = compressedBase64.split(',')[1]; 
+            
+            // Відправляємо на сервер
+            sendToServer({ 
+                action: "analyze_food", 
+                imageB64: b64Data,
+                scanMode: currentScanMode // Передаємо обраний режим!
+            })
+            .then(res => {
+                if (res.status === 'success') {
+                    baseWeight = res.data.weight || 150;
+                    baseKcal = res.data.kcal || 0;
+                    baseProtein = res.data.protein || 0;
+                    baseFat = res.data.fat || 0;
+                    baseCarbs = res.data.carbs || 0;
+                    
+                    document.getElementById('food-name').innerText = res.data.name || "Невідома страва";
+                    weightInput.value = baseWeight;
+                    updateFoodUI();
+                    
+                    loadingArea.classList.add('hidden');
+                    resultArea.classList.remove('hidden');
+                    tg.HapticFeedback.notificationOccurred('success');
+                } else {
+                    alert("Помилка розпізнавання: " + res.message);
+                    loadingArea.classList.add('hidden');
+                    uploadArea.classList.remove('hidden');
+                    cameraInput.value = '';
+                }
+            }).catch(err => {
+                alert("Помилка з'єднання з сервером.");
+                loadingArea.classList.add('hidden');
+                uploadArea.classList.remove('hidden');
+                cameraInput.value = '';
+            });
+        };
+    };
+}
 
 if (cameraInput) {
     cameraInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            foodPreview.src = e.target.result; 
-            uploadArea.classList.add('hidden'); loadingArea.classList.remove('hidden'); tg.HapticFeedback.impactOccurred('medium');
-            setTimeout(() => {
-                loadingArea.classList.add('hidden'); resultArea.classList.remove('hidden');
-                weightInput.value = baseWeight; updateFoodUI(); 
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 3000);
-        };
-        reader.readAsDataURL(file);
+        uploadArea.classList.add('hidden'); 
+        loadingArea.classList.remove('hidden'); 
+        tg.HapticFeedback.impactOccurred('medium');
+        
+        compressImageAndSend(file);
     });
 }
 
 function updateFoodUI() {
     let currentWeight = parseInt(weightInput.value) || 0;
-    const calc = (baseVal) => Math.round((baseVal / baseWeight) * currentWeight);
+    let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+    const calc = (baseVal) => Math.round((baseVal / safeBaseWeight) * currentWeight);
+    
     document.getElementById('food-kcal').innerText = calc(baseKcal);
     document.getElementById('food-protein').innerText = calc(baseProtein);
     document.getElementById('food-fat').innerText = calc(baseFat);
@@ -746,7 +818,7 @@ if (btnAddFood) {
 
 // --- ЛОГІКА ВІКНА РЕДАГУВАННЯ/ВИДАЛЕННЯ ---
 const editFoodModal = document.getElementById('edit-food-modal');
-const editNameInput = document.getElementById('edit-food-name'); // Нове поле назви
+const editNameInput = document.getElementById('edit-food-name'); 
 const editWeightInput = document.getElementById('edit-food-weight');
 const editKcalInput = document.getElementById('edit-food-kcal');
 
@@ -757,7 +829,6 @@ function openEditFoodModal(id) {
 
     editingFoodId = id;
     
-    // Заповнюємо поля даними страви
     editNameInput.value = food.name; 
     editWeightInput.value = food.weight;
     editKcalInput.value = food.kcal;
@@ -780,13 +851,11 @@ document.getElementById('btn-save-edit-food').addEventListener('click', () => {
     const dateStr = focusCurrentDate.toDateString();
     const food = userData.foodHistory[dateStr].find(f => f.id === editingFoodId);
     if (food) {
-        // Зчитуємо нові значення
         const newName = editNameInput.value.trim() || "Невідома страва";
         const newWeight = parseInt(editWeightInput.value) || 0;
         const newKcal = parseInt(editKcalInput.value) || 0;
         const ratio = newKcal / (food.kcal || 1); 
         
-        // Зберігаємо зміни
         food.name = newName;
         food.weight = newWeight; 
         food.kcal = newKcal; 

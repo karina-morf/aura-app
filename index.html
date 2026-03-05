@@ -146,13 +146,20 @@
             </div>
         </div>
 
-        <div id="scanner-upload-area" class="card" style="text-align: center; padding: 40px 20px; border: 2px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05);">
-            <div class="avatar-placeholder" style="margin: 0 auto 20px; width: 80px; height: 80px; font-size: 30px; background: rgba(59, 130, 246, 0.2); border: none;">📸</div>
-            <h3 style="margin-bottom: 10px;">Що у тебе в тарілці?</h3>
-            <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Завантаж фото з галереї або зроби нове, і ШІ розрахує КБЖВ.</p>
+        <div id="scanner-upload-area" class="card" style="text-align: center; padding: 30px 20px; border: 2px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05);">
+            <div class="avatar-placeholder" style="margin: 0 auto 15px; width: 70px; height: 70px; font-size: 26px; background: rgba(59, 130, 246, 0.2); border: none;">📸</div>
+            <h3 style="margin-bottom: 15px;">Що скануємо?</h3>
             
-            <label for="camera-input" class="btn-primary" style="display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; margin-top: 10px;">
-                📸 Вибрати або зробити фото
+            <div id="scan-modes-container" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
+                <div class="symptom-chip active" data-mode="food">🍲 Страва</div>
+                <div class="symptom-chip" data-mode="label">🧾 Етикетка</div>
+                <div class="symptom-chip" data-mode="barcode">⏸ Упаковка</div>
+            </div>
+            
+            <p id="scan-hint" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px; min-height: 36px;">ШІ проаналізує страву та розрахує порцію.</p>
+            
+            <label for="camera-input" class="btn-primary" style="display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; margin-top: 0;">
+                📸 Відкрити камеру / галерею
             </label>
             <input type="file" id="camera-input" accept="image/*" style="display: none;">
         </div>
@@ -160,15 +167,15 @@
         <div id="scanner-loading-area" class="card hidden" style="text-align: center;">
             <img id="food-preview" src="" alt="Food Preview" style="width: 100%; height: 200px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.1);">
             <div class="spinner" style="margin: 0 auto 15px;"></div>
-            <h3 class="pulsate-text" style="color: #3B82F6;">ШІ аналізує страву...</h3>
-            <p style="font-size: 12px; color: var(--text-muted);">Визначаємо інгредієнти та вагу</p>
+            <h3 class="pulsate-text" style="color: #3B82F6;">ШІ аналізує фото...</h3>
+            <p style="font-size: 12px; color: var(--text-muted);">Визначаємо дані та КБЖВ</p>
         </div>
 
         <div id="scanner-result-area" class="hidden">
             <div class="card" style="border-top: 4px solid #3B82F6;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div>
-                        <h2 id="food-name" style="margin: 0 0 5px 0; font-size: 20px;">Авокадо тост з яйцем</h2>
+                        <h2 id="food-name" style="margin: 0 0 5px 0; font-size: 20px;">Назва страви</h2>
                         
                         <div style="display: flex; align-items: center; gap: 8px; margin-top: 10px;">
                             <input type="number" id="food-weight-input" value="150" style="width: 80px; padding: 8px 12px; border-radius: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: white; font-size: 16px; text-align: center; margin: 0;">
@@ -176,15 +183,15 @@
                         </div>
                     </div>
                     <div style="text-align: right;">
-                        <span id="food-kcal" class="highlight-number" style="font-size: 28px;">340</span>
+                        <span id="food-kcal" class="highlight-number" style="font-size: 28px;">0</span>
                         <span style="font-size: 12px; color: var(--text-muted); display: block;">ккал</span>
                     </div>
                 </div>
 
                 <div class="activity-grid" style="margin-top: 0; margin-bottom: 15px;">
-                    <div class="activity-item" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2);"><span class="activity-icon">🥩</span><div class="activity-data"><span id="food-protein" class="highlight-number" style="font-size: 18px; color: #EC4899;">14</span><span class="activity-label">Білки</span></div></div>
-                    <div class="activity-item" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);"><span class="activity-icon">🥑</span><div class="activity-data"><span id="food-fat" class="highlight-number" style="font-size: 18px; color: #F59E0B;">18</span><span class="activity-label">Жири</span></div></div>
-                    <div class="activity-item" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);"><span class="activity-icon">🥐</span><div class="activity-data"><span id="food-carbs" class="highlight-number" style="font-size: 18px; color: #10B981;">32</span><span class="activity-label">Вуглеводи</span></div></div>
+                    <div class="activity-item" style="background: rgba(236, 72, 153, 0.1); border: 1px solid rgba(236, 72, 153, 0.2);"><span class="activity-icon">🥩</span><div class="activity-data"><span id="food-protein" class="highlight-number" style="font-size: 18px; color: #EC4899;">0</span><span class="activity-label">Білки</span></div></div>
+                    <div class="activity-item" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.2);"><span class="activity-icon">🥑</span><div class="activity-data"><span id="food-fat" class="highlight-number" style="font-size: 18px; color: #F59E0B;">0</span><span class="activity-label">Жири</span></div></div>
+                    <div class="activity-item" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);"><span class="activity-icon">🥐</span><div class="activity-data"><span id="food-carbs" class="highlight-number" style="font-size: 18px; color: #10B981;">0</span><span class="activity-label">Вуглеводи</span></div></div>
                 </div>
 
                 <p style="font-size: 13px; color: var(--text-muted); margin: 0 0 10px 0;">Прийом їжі:</p>
@@ -206,7 +213,11 @@
             </div>
             
             <div id="food-history-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+                    <span style="font-size: 24px; display: block; margin-bottom: 5px;">🍽</span>
+                    <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.<br>Відскануй свою першу страву!</p>
                 </div>
+            </div>
         </div>
     </div>
 
