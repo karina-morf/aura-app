@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>AURA</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="bg-glow"></div>
@@ -164,8 +164,8 @@
             <h3 style="margin-bottom: 10px;">Що у тебе в тарілці?</h3>
             <p style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px;">Сфотографуй їжу, і ШІ автоматично розрахує калорії та макроси.</p>
             
-            <label for="camera-input" class="btn-primary" style="display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; margin-top: 10px;">Сфотографувати або обрати</label>
-            <input type="file" id="camera-input" accept="image/*" style="opacity: 0; position: absolute; z-index: -1; width: 0; height: 0;">
+            <label for="camera-input" class="btn-primary" style="display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; margin-top: 10px;">Відкрити камеру</label>
+            <input type="file" id="camera-input" accept="image/*" capture="environment" style="opacity: 0; position: absolute; z-index: -1; width: 0; height: 0;">
         </div>
 
         <div id="scanner-loading-area" class="card hidden" style="text-align: center;">
@@ -180,10 +180,7 @@
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 15px;">
                     <div>
                         <h2 id="food-name" style="margin: 0 0 5px 0; font-size: 20px;">Авокадо тост з яйцем</h2>
-                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 5px;">
-                            <input type="number" id="food-weight-input" value="150" style="width: 75px; padding: 6px 10px; font-size: 14px; text-align: center; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; outline: none;">
-                            <span style="color: var(--text-muted); font-size: 13px;">грамів ✏️</span>
-                        </div>
+                        <p id="food-weight" style="margin: 0; color: var(--text-muted); font-size: 13px;">Орієнтовна порція</p>
                     </div>
                     <div style="text-align: right;">
                         <span id="food-kcal" class="highlight-number" style="font-size: 28px;">340</span>
@@ -296,6 +293,6 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
