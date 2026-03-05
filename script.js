@@ -689,7 +689,7 @@ if (btnRetakePhoto) {
     });
 }
 
-// Кнопка "Додати в Орбіту"
+/// Кнопка "Додати в Орбіту"
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
         // Беремо поточні розраховані значення з екрану
@@ -709,14 +709,21 @@ if (btnAddFood) {
         let currentFat = parseInt(planFatEl.innerText) || 0;
         let currentCarbs = parseInt(planCarbsEl.innerText) || 0;
         
-        // Віднімаємо з'їдене (залишок зменшується!)
+        // 1. ВІДНІМАЄМО З'ЇДЕНЕ ВІД ПЛАНУ
         planKcalEl.innerText = `${Math.max(0, currentKcal - foodKcal)} ккал`;
         planProteinEl.innerText = Math.max(0, currentProtein - foodProtein);
         planFatEl.innerText = Math.max(0, currentFat - foodFat);
         planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
 
-        // ТУТ БУЛА ПОМИЛКА: Я ПРИБРАВ ДОДАВАННЯ В АКТИВНІСТЬ 🔥 
-        // Тепер їжа не буде перетворюватися на "спалені" калорії!
+        // 2. ВІДПРАВЛЯЄМО В GOOGLE БАЗУ (Щоб не зникало при перезавантаженні)
+        sendToServer({ 
+            action: "log_food", 
+            userId: currentUserId, 
+            kcal: foodKcal, 
+            protein: foodProtein, 
+            fat: foodFat, 
+            carbs: foodCarbs 
+        });
         
         // Повертаємось на Орбіту
         document.querySelector('.nav-item[data-target="main-screen"]').click();
@@ -725,7 +732,7 @@ if (btnAddFood) {
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
         cameraInput.value = '';
-        weightInput.value = 150; // Скидаємо вагу на стандартну
+        if (weightInput) weightInput.value = 150; 
         
         tg.HapticFeedback.notificationOccurred('success');
         tg.showAlert("Страву додано! Ліміти оновлено 🪐");
