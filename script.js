@@ -575,6 +575,26 @@ const resultArea = document.getElementById('scanner-result-area');
 const foodPreview = document.getElementById('food-preview');
 const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
+const weightInput = document.getElementById('food-weight-input');
+
+// Базові значення ШІ на 100 грамів (для нашого тестового тосту)
+let currentFoodBase = { kcal: 226, protein: 9, fat: 12, carbs: 21 };
+
+// Функція перерахунку макросів при зміні ваги
+function recalculateMacros() {
+    let weight = parseInt(weightInput.value) || 0;
+    let factor = weight / 100;
+    
+    document.getElementById('food-kcal').innerText = Math.round(currentFoodBase.kcal * factor);
+    document.getElementById('food-protein').innerText = Math.round(currentFoodBase.protein * factor);
+    document.getElementById('food-fat').innerText = Math.round(currentFoodBase.fat * factor);
+    document.getElementById('food-carbs').innerText = Math.round(currentFoodBase.carbs * factor);
+}
+
+// Слухаємо зміни у полі вводу ваги
+if (weightInput) {
+    weightInput.addEventListener('input', recalculateMacros);
+}
 
 // Коли користувач робить фото або обирає з галереї
 if (cameraInput) {
@@ -582,25 +602,80 @@ if (cameraInput) {
         const file = event.target.files[0];
         if (!file) return;
 
-        // Читаємо файл, щоб показати прев'ю на екрані
         const reader = new FileReader();
         reader.onload = function(e) {
-            foodPreview.src = e.target.result; // Вставляємо картинку
+            foodPreview.src = e.target.result; 
             
-            // Ховаємо кнопку, показуємо анімацію "ШІ аналізує"
             uploadArea.classList.add('hidden');
             loadingArea.classList.remove('hidden');
             tg.HapticFeedback.impactOccurred('medium');
 
-            // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
-            // Згодом ми підключимо сюди реальний Google Gemini Vision!
+            // ІМІТАЦІЯ РОБОТИ ШІ
             setTimeout(() => {
                 loadingArea.classList.add('hidden');
                 resultArea.classList.remove('hidden');
+                
+                // Скидаємо вагу на дефолтні 150г при новому скануванні
+                weightInput.value = 150;
+                recalculateMacros();
+                
                 tg.HapticFeedback.notificationOccurred('success');
             }, 3000);
         };
         reader.readAsDataURL(file);
+    });
+}
+
+// Кнопка "Сфотографувати ще раз"
+if (btnRetakePhoto) {
+    btnRetakePhoto.addEventListener('click', () => {
+        resultArea.classList.add('hidden');
+        uploadArea.classList.remove('hidden');
+        cameraInput.value = ''; 
+        tg.HapticFeedback.selectionChanged();
+    });
+}
+
+// Кнопка "Додати в Орбіту"
+if (btnAddFood) {
+    btnAddFood.addEventListener('click', () => {
+        // Беремо поточні розраховані значення з екрану
+        const foodKcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
+        const foodProtein = parseInt(document.getElementById('food-protein').innerText) || 0;
+        const foodFat = parseInt(document.getElementById('food-fat').innerText) || 0;
+        const foodCarbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
+        
+        // Беремо залишок з головного екрану
+        const planKcalEl = document.getElementById('plan-kcal');
+        const planProteinEl = document.getElementById('plan-protein');
+        const planFatEl = document.getElementById('plan-fat');
+        const planCarbsEl = document.getElementById('plan-carbs');
+        
+        let currentKcal = parseInt(planKcalEl.innerText) || 0;
+        let currentProtein = parseInt(planProteinEl.innerText) || 0;
+        let currentFat = parseInt(planFatEl.innerText) || 0;
+        let currentCarbs = parseInt(planCarbsEl.innerText) || 0;
+        
+        // Віднімаємо з'їдене (залишок зменшується!)
+        planKcalEl.innerText = `${Math.max(0, currentKcal - foodKcal)} ккал`;
+        planProteinEl.innerText = Math.max(0, currentProtein - foodProtein);
+        planFatEl.innerText = Math.max(0, currentFat - foodFat);
+        planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
+
+        // Оновлюємо загальну статистику активності
+        userData.caloriesToday += foodKcal;
+        document.getElementById('stat-kcal').innerText = userData.caloriesToday;
+        
+        // Повертаємось на Орбіту
+        document.querySelector('.nav-item[data-target="main-screen"]').click();
+        
+        // Скидаємо сканер
+        resultArea.classList.add('hidden');
+        uploadArea.classList.remove('hidden');
+        cameraInput.value = '';
+        
+        tg.HapticFeedback.notificationOccurred('success');
+        tg.showAlert("Страву додано! Ліміти оновлено 🪐");
     });
 }
 
@@ -617,22 +692,42 @@ if (btnRetakePhoto) {
 // Кнопка "Додати в Орбіту"
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
-        // Беремо ккал з екрану
-        const kcal = parseInt(document.getElementById('food-kcal').innerText);
+        // 1. Беремо макроси зі сканера (те, що розпізнав ШІ)
+        const foodKcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
+        const foodProtein = parseInt(document.getElementById('food-protein').innerText) || 0;
+        const foodFat = parseInt(document.getElementById('food-fat').innerText) || 0;
+        const foodCarbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
         
-        // Оновлюємо калорії на головному екрані
-        userData.caloriesToday += kcal;
+        // 2. Беремо поточний залишок з головного екрану "Орбіта"
+        const planKcalEl = document.getElementById('plan-kcal');
+        const planProteinEl = document.getElementById('plan-protein');
+        const planFatEl = document.getElementById('plan-fat');
+        const planCarbsEl = document.getElementById('plan-carbs');
+        
+        let currentKcal = parseInt(planKcalEl.innerText) || 0;
+        let currentProtein = parseInt(planProteinEl.innerText) || 0;
+        let currentFat = parseInt(planFatEl.innerText) || 0;
+        let currentCarbs = parseInt(planCarbsEl.innerText) || 0;
+        
+        // 3. Віднімаємо з'їдене (Math.max не дасть піти в мінус, якщо ти переїла)
+        planKcalEl.innerText = `${Math.max(0, currentKcal - foodKcal)} ккал`;
+        planProteinEl.innerText = Math.max(0, currentProtein - foodProtein);
+        planFatEl.innerText = Math.max(0, currentFat - foodFat);
+        planCarbsEl.innerText = Math.max(0, currentCarbs - foodCarbs);
+
+        // 4. Оновлюємо статистику (щоб бачити, скільки всього за день з'їдено)
+        userData.caloriesToday += foodKcal;
         document.getElementById('stat-kcal').innerText = userData.caloriesToday;
         
-        // Імітуємо клік по кнопці "Орбіта" в нижньому меню
+        // 5. Переходимо на головний екран
         document.querySelector('.nav-item[data-target="main-screen"]').click();
         
-        // Скидаємо сканер для наступного разу
+        // 6. Скидаємо сканер для наступного фото
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
         cameraInput.value = '';
         
         tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Страву успішно додано до Орбіти! 🪐");
+        tg.showAlert("Страву додано! Ліміти оновлено 🪐");
     });
 }
