@@ -569,6 +569,7 @@ navItems.forEach(item => {
 });
 // --- 7. AURA ФОКУС (СКАНЕР ЇЖІ) ---
 const cameraInput = document.getElementById('camera-input');
+const galleryInput = document.getElementById('gallery-input'); // Додали змінну для галереї
 const uploadArea = document.getElementById('scanner-upload-area');
 const loadingArea = document.getElementById('scanner-loading-area');
 const resultArea = document.getElementById('scanner-result-area');
@@ -576,33 +577,34 @@ const foodPreview = document.getElementById('food-preview');
 const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
 
-// Коли користувач робить фото або обирає з галереї
-if (cameraInput) {
-    cameraInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
+// Створюємо спільну функцію, яка обробляє фото (неважливо, звідки воно прийшло)
+function handleImageUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
 
-        // Читаємо файл, щоб показати прев'ю на екрані
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            foodPreview.src = e.target.result; // Вставляємо картинку
-            
-            // Ховаємо кнопку, показуємо анімацію "ШІ аналізує"
-            uploadArea.classList.add('hidden');
-            loadingArea.classList.remove('hidden');
-            tg.HapticFeedback.impactOccurred('medium');
+    // Читаємо файл, щоб показати прев'ю на екрані
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        foodPreview.src = e.target.result; // Вставляємо картинку
+        
+        // Ховаємо кнопку, показуємо анімацію "ШІ аналізує"
+        uploadArea.classList.add('hidden');
+        loadingArea.classList.remove('hidden');
+        tg.HapticFeedback.impactOccurred('medium');
 
-            // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
-            // Згодом ми підключимо сюди реальний Google Gemini Vision!
-            setTimeout(() => {
-                loadingArea.classList.add('hidden');
-                resultArea.classList.remove('hidden');
-                tg.HapticFeedback.notificationOccurred('success');
-            }, 3000);
-        };
-        reader.readAsDataURL(file);
-    });
+        // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
+        setTimeout(() => {
+            loadingArea.classList.add('hidden');
+            resultArea.classList.remove('hidden');
+            tg.HapticFeedback.notificationOccurred('success');
+        }, 3000);
+    };
+    reader.readAsDataURL(file);
 }
+
+// "Слухаємо" обидві кнопки. Якщо змінився файл - запускаємо функцію
+if (cameraInput) cameraInput.addEventListener('change', handleImageUpload);
+if (galleryInput) galleryInput.addEventListener('change', handleImageUpload);
 
 // Кнопка "Сфотографувати ще раз"
 if (btnRetakePhoto) {
