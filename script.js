@@ -15,7 +15,14 @@ const btnSaveActivity = document.getElementById('btn-save-activity');
 const navItems = document.querySelectorAll('.nav-item');
 const allScreens = document.querySelectorAll('.main-content');
 
-let userData = { weight: 0, waterGoal: 0, waterCurrent: 0, stepsToday: 0, distanceToday: 0, caloriesToday: 0, history: {}, customTags: [] };
+// --- ОНОВЛЕНИЙ ОБ'ЄКТ КОРИСТУВАЧА ---
+let userData = { 
+    weight: 0, waterGoal: 0, waterCurrent: 0, 
+    stepsToday: 0, distanceToday: 0, burnedKcalToday: 0, // Фітнес
+    goalKcal: 0, goalProtein: 0, goalFat: 0, goalCarbs: 0, // Цілі БЖВ
+    consumedKcalToday: 0, consumedProtein: 0, consumedFat: 0, consumedCarbs: 0, // Спожито їжі
+    history: {}, customTags: [] 
+};
 let selectedSymptoms = [];
 
 // ⚠️ Твоє посилання на Google Apps Script ⚠️
@@ -32,6 +39,19 @@ function sendToServer(payload) {
     }).then(res => res.json());
 }
 
+// --- ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (ВІДНІМАЄМО) ---
+function updateNutritionUI() {
+    let remainingKcal = userData.goalKcal - userData.consumedKcalToday;
+    let remProtein = userData.goalProtein - userData.consumedProtein;
+    let remFat = userData.goalFat - userData.consumedFat;
+    let remCarbs = userData.goalCarbs - userData.consumedCarbs;
+
+    document.getElementById('plan-kcal').innerText = remainingKcal > 0 ? remainingKcal : 0;
+    document.getElementById('plan-protein').innerText = remProtein > 0 ? remProtein : 0;
+    document.getElementById('plan-fat').innerText = remFat > 0 ? remFat : 0;
+    document.getElementById('plan-carbs').innerText = remCarbs > 0 ? remCarbs : 0;
+}
+
 // --- 1. ПЕРЕВІРКА КОРИСТУВАЧА ---
 function checkUser() {
     sendToServer({ action: "check_user", userId: currentUserId })
@@ -42,9 +62,17 @@ function checkUser() {
             userData.waterCurrent = data.userData.waterToday || 0; 
             userData.stepsToday = data.userData.stepsToday || 0;
             userData.distanceToday = data.userData.distanceToday || 0;
-            userData.caloriesToday = data.userData.caloriesToday || 0;
+            userData.burnedKcalToday = data.userData.caloriesToday || 0; 
             
-            // Зберігаємо історію та власні теги
+            // Завантажуємо цілі БЖВ з бази даних
+            userData.goalKcal = data.userData.dailyKcal || 0;
+            userData.goalProtein = data.userData.protein || 0;
+            userData.goalFat = data.userData.fat || 0;
+            userData.goalCarbs = data.userData.carbs || 0;
+
+            // Завантажуємо спожиту їжу (поки що лише калорії, БЖВ будуть нулі до збереження)
+            userData.consumedKcalToday = data.userData.consumedKcalToday || 0;
+            
             userData.history = data.userData.history || {};
             userData.customTags = data.userData.customTags ? data.userData.customTags.split(',') : [];
             
@@ -53,13 +81,10 @@ function checkUser() {
             document.getElementById('greeting-name').innerText = `Привіт, ${data.userData.nickname}!`;
             document.getElementById('stat-steps').innerText = userData.stepsToday;
             document.getElementById('stat-distance').innerText = userData.distanceToday;
-            document.getElementById('stat-kcal').innerText = userData.caloriesToday;
-            document.getElementById('plan-kcal').innerText = `${data.userData.dailyKcal} ккал`;
-            document.getElementById('plan-protein').innerText = data.userData.protein;
-            document.getElementById('plan-fat').innerText = data.userData.fat;
-            document.getElementById('plan-carbs').innerText = data.userData.carbs;
+            document.getElementById('stat-kcal').innerText = userData.burnedKcalToday;
 
-            renderCustomTags(); // Відмальовуємо теги
+            updateNutritionUI(); // Оновлюємо віджет
+            renderCustomTags(); 
 
             if (data.userData.cycleStart && data.userData.cycleDuration) {
                 const periodDuration = data.userData.periodDuration || 5; 
@@ -99,6 +124,10 @@ btnRegister.addEventListener('click', () => {
 
     userData.weight = weight;
     userData.waterGoal = weight * 35;
+    userData.goalKcal = dailyKcal;
+    userData.goalProtein = protein;
+    userData.goalFat = fat;
+    userData.goalCarbs = carbs;
     
     const originalBtnText = btnRegister.innerText;
     btnRegister.innerText = "Створюємо... ✨";
@@ -112,10 +141,9 @@ btnRegister.addEventListener('click', () => {
         document.getElementById('water-goal').innerText = userData.waterGoal;
         document.getElementById('water-current').innerText = 0;
         document.getElementById('greeting-name').innerText = `Привіт, ${tg.initDataUnsafe?.user?.first_name || 'Гість'}!`;
-        document.getElementById('plan-kcal').innerText = `${dailyKcal} ккал`;
-        document.getElementById('plan-protein').innerText = protein;
-        document.getElementById('plan-fat').innerText = fat;
-        document.getElementById('plan-carbs').innerText = carbs;
+        
+        updateNutritionUI(); // Оновлюємо віджет
+        
         regScreen.classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
         bottomNav.classList.remove('hidden');
@@ -137,7 +165,7 @@ btnWater.addEventListener('click', () => {
 btnOpenActivity.addEventListener('click', () => {
     document.getElementById('input-steps').value = userData.stepsToday || '';
     document.getElementById('input-distance').value = userData.distanceToday || '';
-    document.getElementById('input-kcal').value = userData.caloriesToday || '';
+    document.getElementById('input-kcal').value = userData.burnedKcalToday || '';
     activityModal.classList.remove('hidden');
     tg.HapticFeedback.impactOccurred('light');
 });
@@ -149,7 +177,7 @@ btnSaveActivity.addEventListener('click', () => {
     const distance = parseFloat(document.getElementById('input-distance').value) || 0;
     const calories = parseInt(document.getElementById('input-kcal').value) || 0;
 
-    userData.stepsToday = steps; userData.distanceToday = distance; userData.caloriesToday = calories;
+    userData.stepsToday = steps; userData.distanceToday = distance; userData.burnedKcalToday = calories;
     document.getElementById('stat-steps').innerText = steps; document.getElementById('stat-distance').innerText = distance; document.getElementById('stat-kcal').innerText = calories;
 
     activityModal.classList.add('hidden');
@@ -234,7 +262,6 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
         strip.appendChild(div);
     }
     
-    // НАДІЙНИЙ МАТЕМАТИЧНИЙ СКРОЛ ПРИ ЗАВАНТАЖЕННІ
     setTimeout(() => { 
         if (todayElement && strip) { 
             const scrollPos = todayElement.offsetLeft - (strip.offsetWidth / 2) + (todayElement.offsetWidth / 2);
@@ -243,7 +270,6 @@ function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     }, 100);
 }
 
-// Початкове налаштування циклу
 btnSaveCycle.addEventListener('click', () => {
     const c1Start = new Date(document.getElementById('c1-start').value);
     const c1End = new Date(document.getElementById('c1-end').value);
@@ -273,7 +299,6 @@ let currentSymptomDate = new Date();
 const symptomsModal = document.getElementById('symptoms-modal');
 const dayInfoModal = document.getElementById('day-info-modal');
 
-// Функція відкриття вікна симптомів на конкретну дату
 function openSymptomsModal(dateObj) {
     currentSymptomDate = dateObj; 
     const dateStr = dateObj.toDateString();
@@ -281,12 +306,10 @@ function openSymptomsModal(dateObj) {
     let displayDate = dateObj.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
     document.getElementById('symptoms-modal-title').innerText = dateObj.toDateString() === new Date().toDateString() ? "Як ти сьогодні?" : displayDate;
 
-    // Скидаємо теги
     selectedSymptoms = [];
     document.querySelectorAll('.symptom-chip').forEach(c => c.classList.remove('active'));
     document.getElementById('symptom-note').value = "";
 
-    // Підтягуємо історію
     if (userData.history[dateStr]) {
         if (userData.history[dateStr].symptoms) {
             selectedSymptoms = userData.history[dateStr].symptoms.split(',');
@@ -302,16 +325,9 @@ function openSymptomsModal(dateObj) {
     tg.HapticFeedback.impactOccurred('light');
 }
 
-// Кнопка "+" на головному екрані
-document.getElementById('btn-open-symptoms-today').addEventListener('click', () => {
-    openSymptomsModal(new Date()); 
-});
+document.getElementById('btn-open-symptoms-today').addEventListener('click', () => openSymptomsModal(new Date()));
+document.getElementById('btn-close-symptoms').addEventListener('click', () => symptomsModal.classList.add('hidden'));
 
-document.getElementById('btn-close-symptoms').addEventListener('click', () => {
-    symptomsModal.classList.add('hidden');
-});
-
-// Логіка кліків по тегах
 function toggleSymptom(chip, sym) {
     chip.classList.toggle('active');
     if (selectedSymptoms.includes(sym)) selectedSymptoms = selectedSymptoms.filter(s => s !== sym);
@@ -332,12 +348,10 @@ function renderCustomTags() {
     }
 }
 
-// Вішаємо кліки на стандартні теги
 document.querySelectorAll('.symptom-chip:not(.custom)').forEach(chip => {
     chip.addEventListener('click', () => toggleSymptom(chip, chip.getAttribute('data-sym')));
 });
 
-// Додавання власного тегу
 document.getElementById('btn-add-custom-tag').addEventListener('click', () => {
     const input = document.getElementById('input-custom-tag');
     const newTag = input.value.trim();
@@ -354,7 +368,6 @@ document.getElementById('btn-add-custom-tag').addEventListener('click', () => {
     tg.HapticFeedback.impactOccurred('light');
 });
 
-// ЗБЕРЕЖЕННЯ СИМПТОМІВ
 document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     const note = document.getElementById('symptom-note').value;
     const btn = document.getElementById('btn-save-symptoms');
@@ -376,12 +389,12 @@ document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     });
 });
 
-// --- ІНТЕРАКТИВНИЙ КАЛЕНДАР (РЕДАГУВАННЯ ТА ІСТОРІЯ) ---
-let calendarMode = 'view'; // 'view' або 'edit'
+// --- ІНТЕРАКТИВНИЙ КАЛЕНДАР ---
+let calendarMode = 'view';
 const fullCalModal = document.getElementById('full-calendar-modal');
 const btnOpenInteractiveCal = document.getElementById('btn-open-interactive-cal');
 const btnOpenFullCal = document.getElementById('btn-open-full-cal');
-let viewedDateObj = new Date(); // Дата для вікна інфо
+let viewedDateObj = new Date(); 
 
 if(btnOpenInteractiveCal) {
     btnOpenInteractiveCal.addEventListener('click', () => {
@@ -443,7 +456,6 @@ function renderFullCalendar() {
 
         if (i === today.getDate()) dayDiv.classList.add('today');
 
-        // Розмальовуємо
         if (userData.cycleStart) {
             if (cDay >= 1 && cDay <= pDur) {
                 if(calendarMode === 'edit') dayDiv.classList.add('user-selected');
@@ -453,7 +465,6 @@ function renderFullCalendar() {
             }
         }
 
-        // Клік по дню
         dayDiv.addEventListener('click', () => {
             if (calendarMode === 'edit') {
                 dayDiv.classList.toggle('user-selected');
@@ -466,7 +477,6 @@ function renderFullCalendar() {
     }
 }
 
-// ВІКНО ІНФОРМАЦІЇ ПРО ДЕНЬ
 function openDayInfo(dateObj, cycleDay, pDur) {
     viewedDateObj = dateObj; 
     const dateStr = dateObj.toDateString();
@@ -500,17 +510,12 @@ function openDayInfo(dateObj, cycleDay, pDur) {
     tg.HapticFeedback.impactOccurred('light');
 }
 
-document.getElementById('btn-close-day-info').addEventListener('click', () => {
-    document.getElementById('day-info-modal').classList.add('hidden');
-});
-
-// Кнопка "Редагувати цей день" всередині вікна інформації
+document.getElementById('btn-close-day-info').addEventListener('click', () => document.getElementById('day-info-modal').classList.add('hidden'));
 document.getElementById('btn-edit-past-symptoms').addEventListener('click', () => {
     document.getElementById('day-info-modal').classList.add('hidden'); 
     openSymptomsModal(viewedDateObj); 
 });
 
-// Кнопка збереження для режиму 'edit' (місячні)
 document.getElementById('btn-save-calendar-dates').addEventListener('click', () => {
     const selectedElements = document.querySelectorAll('.cal-grid-day.user-selected');
     if (selectedElements.length === 0) return tg.showAlert("Відміть хоча б один день!");
@@ -554,7 +559,6 @@ navItems.forEach(item => {
         document.getElementById(targetId).classList.remove('hidden');
         tg.HapticFeedback.selectionChanged();
 
-        // НАДІЙНИЙ ФІКС КАЛЕНДАРЯ (Математичний скрол)
         if (targetId === 'calendar-screen') {
             setTimeout(() => {
                 const strip = document.getElementById('calendar-strip');
@@ -567,7 +571,8 @@ navItems.forEach(item => {
         }
     });
 });
-// --- 7. AURA ФОКУС (СКАНЕР ЇЖІ) ---
+
+// --- 7. AURA ФОКУС (СКАНЕР ЇЖІ ТА ІСТОРІЯ) ---
 const cameraInput = document.getElementById('camera-input');
 const uploadArea = document.getElementById('scanner-upload-area');
 const loadingArea = document.getElementById('scanner-loading-area');
@@ -577,14 +582,18 @@ const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
 const weightInput = document.getElementById('food-weight-input');
 
-// Змінні для збереження БАЗОВИХ значень ШІ (наприклад, порція 150г)
+// Закриття вікна редагування
+document.getElementById('btn-close-edit-food').addEventListener('click', () => {
+    document.getElementById('edit-food-modal').classList.add('hidden');
+});
+
+// Змінні ШІ
 let baseWeight = 150; 
 let baseKcal = 340;
 let baseProtein = 14;
 let baseFat = 18;
 let baseCarbs = 32;
 
-// Коли користувач робить фото або обирає з галереї
 if (cameraInput) {
     cameraInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
@@ -598,12 +607,10 @@ if (cameraInput) {
             loadingArea.classList.remove('hidden');
             tg.HapticFeedback.impactOccurred('medium');
 
-            // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
             setTimeout(() => {
                 loadingArea.classList.add('hidden');
                 resultArea.classList.remove('hidden');
                 
-                // Встановлюємо початкові значення
                 weightInput.value = baseWeight;
                 updateFoodUI(); 
                 
@@ -614,11 +621,8 @@ if (cameraInput) {
     });
 }
 
-// Функція для перерахунку калорій при зміні ваги в грамах
 function updateFoodUI() {
     let currentWeight = parseInt(weightInput.value) || 0;
-    
-    // Формула: (базове значення / базова вага) * поточна вага
     const calc = (baseVal) => Math.round((baseVal / baseWeight) * currentWeight);
 
     document.getElementById('food-kcal').innerText = calc(baseKcal);
@@ -627,12 +631,10 @@ function updateFoodUI() {
     document.getElementById('food-carbs').innerText = calc(baseCarbs);
 }
 
-// Слухаємо зміни в полі ваги (щоразу як ти друкуєш нову цифру)
 if (weightInput) {
     weightInput.addEventListener('input', updateFoodUI);
 }
 
-// Кнопка "Інше фото"
 if (btnRetakePhoto) {
     btnRetakePhoto.addEventListener('click', () => {
         resultArea.classList.add('hidden');
@@ -642,30 +644,21 @@ if (btnRetakePhoto) {
     });
 }
 
-// Кнопка "Додати в Орбіту" (ВИПРАВЛЕНО: йде в Харчування, а не в Активність)
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
-        // Беремо перераховані цифри з екрану
         const kcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
         const protein = parseInt(document.getElementById('food-protein').innerText) || 0;
         const fat = parseInt(document.getElementById('food-fat').innerText) || 0;
         const carbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
         
-        // Додаємо до СПОЖИТОЇ ЇЖІ (а не до спалених калорій)
         userData.consumedKcalToday = (userData.consumedKcalToday || 0) + kcal;
         userData.consumedProtein = (userData.consumedProtein || 0) + protein;
         userData.consumedFat = (userData.consumedFat || 0) + fat;
         userData.consumedCarbs = (userData.consumedCarbs || 0) + carbs;
         
-        // Оновлюємо Орбіту (головний екран)
-        if (typeof updateNutritionUI === "function") {
-            updateNutritionUI();
-        } else {
-            // Якщо раптом функції немає, просто зменшуємо калорії на головному екрані
-            let currentPlanKcal = parseInt(document.getElementById('plan-kcal').innerText) || 0;
-            let remaining = currentPlanKcal - kcal;
-            document.getElementById('plan-kcal').innerText = remaining > 0 ? remaining : 0;
-        }
+        updateNutritionUI();
+        
+        // Тут ми потім додамо відправку на сервер і збереження в список "Історії"
         
         // Повертаємось на Орбіту
         document.querySelector('.nav-item[data-target="main-screen"]').click();
