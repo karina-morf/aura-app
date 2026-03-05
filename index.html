@@ -33,7 +33,7 @@
             </div>
             <div class="form-group">
                 <label>За скільки тижнів хочеш досягти цілі?</label>
-                <input type="number" id="weeks" placeholder="Наприклад, 12 (здоровий темп: 1 кг/тиж)">
+                <input type="number" id="weeks" placeholder="Наприклад, 12">
             </div>
         </div>
         <button id="btn-register" class="btn-primary">Розрахувати план 🪄</button>
@@ -94,16 +94,13 @@
         </div>
         
         <div id="rhythm-dashboard" class="hidden">
-            <div class="horizontal-calendar" id="calendar-strip">
-                </div>
-
+            <div class="horizontal-calendar" id="calendar-strip"></div>
             <div class="cycle-circle-container">
                 <div class="cycle-circle" id="cycle-circle">
                     <span class="cycle-value" id="cycle-days-main">...</span>
                     <span class="cycle-label" id="cycle-text-main">розрахунок...</span>
                 </div>
             </div>
-
             <button id="btn-open-interactive-cal" class="btn-primary" style="background: rgba(236, 72, 153, 0.15); color: #EC4899; border: 1px solid rgba(236, 72, 153, 0.5); margin-top: 0; margin-bottom: 20px;">Відмітити в календарі 🩸</button>
 
             <div style="margin-bottom: 20px;">
@@ -128,43 +125,24 @@
 
         <div id="rhythm-setup" class="card">
             <h3>🌸 Аналіз твоїх циклів</h3>
-            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px; margin-bottom: 15px;">Введи дати останніх 3 циклів, щоб ШІ максимально точно розрахував твій персональний календар.</p>
-            
+            <p style="color: var(--text-muted); font-size: 13px; margin-top: 5px; margin-bottom: 15px;">Введи дати останніх 3 циклів.</p>
             <div class="form-container">
-                <div class="cycle-row">
-                    <label style="font-size: 12px; color: #3B82F6;">Останній цикл</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="date" id="c1-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                        <input type="date" id="c1-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                    </div>
-                </div>
-                <div class="cycle-row">
-                    <label style="font-size: 12px;">Цикл 2 місяці тому</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="date" id="c2-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                        <input type="date" id="c2-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                    </div>
-                </div>
-                <div class="cycle-row">
-                    <label style="font-size: 12px;">Цикл 3 місяці тому</label>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="date" id="c3-start" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                        <input type="date" id="c3-end" style="padding: 12px; font-size: 14px; color-scheme: dark;">
-                    </div>
-                </div>
+                <div class="cycle-row"><label style="font-size: 12px; color: #3B82F6;">Останній цикл</label><div style="display: flex; gap: 10px;"><input type="date" id="c1-start" style="padding: 12px; font-size: 14px; color-scheme: dark;"><input type="date" id="c1-end" style="padding: 12px; font-size: 14px; color-scheme: dark;"></div></div>
+                <div class="cycle-row"><label style="font-size: 12px;">Цикл 2 місяці тому</label><div style="display: flex; gap: 10px;"><input type="date" id="c2-start" style="padding: 12px; font-size: 14px; color-scheme: dark;"><input type="date" id="c2-end" style="padding: 12px; font-size: 14px; color-scheme: dark;"></div></div>
+                <div class="cycle-row"><label style="font-size: 12px;">Цикл 3 місяці тому</label><div style="display: flex; gap: 10px;"><input type="date" id="c3-start" style="padding: 12px; font-size: 14px; color-scheme: dark;"><input type="date" id="c3-end" style="padding: 12px; font-size: 14px; color-scheme: dark;"></div></div>
             </div>
             <button id="btn-save-cycle" class="btn-primary btn-small">Створити мій календар 🪄</button>
         </div>
     </div>
 
     <div id="scanner-screen" class="screen hidden main-content">
+        
         <div class="header" style="margin-bottom: 10px; flex-direction: column;">
             <h1 class="main-title" style="align-self: flex-start;">Aura <span class="text-highlight">Фокус</span></h1>
             
-            <div style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-top: 15px; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 10px;">
-                <button id="btn-focus-prev" class="btn-icon" style="background: transparent;">◀</button>
-                <span id="focus-date-text" style="font-weight: 600;">Сьогодні</span>
-                <button id="btn-focus-next" class="btn-icon" style="background: transparent;">▶</button>
+            <div style="position: relative; display: flex; justify-content: center; align-items: center; width: 100%; margin-top: 15px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 12px; cursor: pointer;">
+                <span id="focus-date-text" style="font-weight: 600; font-size: 16px; color: #3B82F6;">📅 Сьогодні ▾</span>
+                <input type="date" id="focus-date-picker" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; color-scheme: dark;">
             </div>
         </div>
 
@@ -228,11 +206,7 @@
             </div>
             
             <div id="food-history-list" style="display: flex; flex-direction: column; gap: 10px;">
-                <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
-                    <span style="font-size: 24px; display: block; margin-bottom: 5px;">🍽</span>
-                    <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.<br>Відскануй свою першу страву!</p>
                 </div>
-            </div>
         </div>
     </div>
 
@@ -324,6 +298,10 @@
                 <button id="btn-close-edit-food" class="btn-icon">✖</button>
             </div>
             <div class="form-container">
+                <div class="form-group" style="margin-bottom: 5px;">
+                    <label>Назва страви</label>
+                    <input type="text" id="edit-food-name" style="text-align: left;">
+                </div>
                 <div style="display: flex; gap: 10px;">
                     <div class="form-group" style="flex: 1;">
                         <label>Вага (г)</label>

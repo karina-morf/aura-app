@@ -575,26 +575,36 @@ let focusCurrentDate = new Date();
 let selectedMealTag = "Сніданок"; 
 let editingFoodId = null;
 
+const focusDatePicker = document.getElementById('focus-date-picker');
+
+// Встановлюємо сьогоднішню дату в нативний календар при запуску
+if (focusDatePicker) {
+    focusDatePicker.valueAsDate = new Date();
+}
+
 function updateFocusDateUI() {
     const todayStr = new Date().toDateString();
     const focusStr = focusCurrentDate.toDateString();
     
     if (todayStr === focusStr) {
-        document.getElementById('focus-date-text').innerText = "Сьогодні";
+        document.getElementById('focus-date-text').innerText = "📅 Сьогодні ▾";
     } else {
-        document.getElementById('focus-date-text').innerText = focusCurrentDate.toLocaleDateString('uk-UA', { day: 'numeric', month: 'long' });
+        const options = { day: 'numeric', month: 'long' };
+        document.getElementById('focus-date-text').innerText = `📅 ${focusCurrentDate.toLocaleDateString('uk-UA', options)} ▾`;
     }
     renderFoodHistory();
 }
 
-document.getElementById('btn-focus-prev').addEventListener('click', () => {
-    focusCurrentDate.setDate(focusCurrentDate.getDate() - 1);
-    updateFocusDateUI(); tg.HapticFeedback.selectionChanged();
-});
-document.getElementById('btn-focus-next').addEventListener('click', () => {
-    focusCurrentDate.setDate(focusCurrentDate.getDate() + 1);
-    updateFocusDateUI(); tg.HapticFeedback.selectionChanged();
-});
+// Обробка вибору дати з календаря
+if (focusDatePicker) {
+    focusDatePicker.addEventListener('change', (e) => {
+        if (e.target.value) {
+            focusCurrentDate = new Date(e.target.value);
+            updateFocusDateUI(); 
+            tg.HapticFeedback.selectionChanged();
+        }
+    });
+}
 
 document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
@@ -734,7 +744,9 @@ if (btnAddFood) {
     });
 }
 
+// --- ЛОГІКА ВІКНА РЕДАГУВАННЯ/ВИДАЛЕННЯ ---
 const editFoodModal = document.getElementById('edit-food-modal');
+const editNameInput = document.getElementById('edit-food-name'); // Нове поле назви
 const editWeightInput = document.getElementById('edit-food-weight');
 const editKcalInput = document.getElementById('edit-food-kcal');
 
@@ -744,7 +756,9 @@ function openEditFoodModal(id) {
     if (!food) return;
 
     editingFoodId = id;
-    document.getElementById('edit-food-title').innerText = food.name;
+    
+    // Заповнюємо поля даними страви
+    editNameInput.value = food.name; 
     editWeightInput.value = food.weight;
     editKcalInput.value = food.kcal;
 
@@ -766,11 +780,19 @@ document.getElementById('btn-save-edit-food').addEventListener('click', () => {
     const dateStr = focusCurrentDate.toDateString();
     const food = userData.foodHistory[dateStr].find(f => f.id === editingFoodId);
     if (food) {
+        // Зчитуємо нові значення
+        const newName = editNameInput.value.trim() || "Невідома страва";
         const newWeight = parseInt(editWeightInput.value) || 0;
         const newKcal = parseInt(editKcalInput.value) || 0;
         const ratio = newKcal / (food.kcal || 1); 
-        food.weight = newWeight; food.kcal = newKcal; food.protein = Math.round(food.protein * ratio);
-        food.fat = Math.round(food.fat * ratio); food.carbs = Math.round(food.carbs * ratio);
+        
+        // Зберігаємо зміни
+        food.name = newName;
+        food.weight = newWeight; 
+        food.kcal = newKcal; 
+        food.protein = Math.round(food.protein * ratio);
+        food.fat = Math.round(food.fat * ratio); 
+        food.carbs = Math.round(food.carbs * ratio);
     }
     recalculateTodayNutrition(); renderFoodHistory(); syncFoodWithServer(); 
     editFoodModal.classList.add('hidden'); tg.HapticFeedback.notificationOccurred('success');
