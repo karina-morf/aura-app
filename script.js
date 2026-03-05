@@ -569,72 +569,112 @@ navItems.forEach(item => {
 });
 // --- 7. AURA ФОКУС (СКАНЕР ЇЖІ) ---
 const cameraInput = document.getElementById('camera-input');
-const galleryInput = document.getElementById('gallery-input'); // Додали змінну для галереї
 const uploadArea = document.getElementById('scanner-upload-area');
 const loadingArea = document.getElementById('scanner-loading-area');
 const resultArea = document.getElementById('scanner-result-area');
 const foodPreview = document.getElementById('food-preview');
 const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
+const weightInput = document.getElementById('food-weight-input');
 
-// Створюємо спільну функцію, яка обробляє фото (неважливо, звідки воно прийшло)
-function handleImageUpload(event) {
-    const file = event.target.files[0];
-    if (!file) return;
+// Змінні для збереження БАЗОВИХ значень ШІ (наприклад, порція 150г)
+let baseWeight = 150; 
+let baseKcal = 340;
+let baseProtein = 14;
+let baseFat = 18;
+let baseCarbs = 32;
 
-    // Читаємо файл, щоб показати прев'ю на екрані
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        foodPreview.src = e.target.result; // Вставляємо картинку
-        
-        // Ховаємо кнопку, показуємо анімацію "ШІ аналізує"
-        uploadArea.classList.add('hidden');
-        loadingArea.classList.remove('hidden');
-        tg.HapticFeedback.impactOccurred('medium');
+// Коли користувач робить фото або обирає з галереї
+if (cameraInput) {
+    cameraInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-        // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
-        setTimeout(() => {
-            loadingArea.classList.add('hidden');
-            resultArea.classList.remove('hidden');
-            tg.HapticFeedback.notificationOccurred('success');
-        }, 3000);
-    };
-    reader.readAsDataURL(file);
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            foodPreview.src = e.target.result; 
+            
+            uploadArea.classList.add('hidden');
+            loadingArea.classList.remove('hidden');
+            tg.HapticFeedback.impactOccurred('medium');
+
+            // ІМІТАЦІЯ РОБОТИ ШІ (3 секунди)
+            setTimeout(() => {
+                loadingArea.classList.add('hidden');
+                resultArea.classList.remove('hidden');
+                
+                // Встановлюємо початкові значення
+                weightInput.value = baseWeight;
+                updateFoodUI(); 
+                
+                tg.HapticFeedback.notificationOccurred('success');
+            }, 3000);
+        };
+        reader.readAsDataURL(file);
+    });
 }
 
-// "Слухаємо" обидві кнопки. Якщо змінився файл - запускаємо функцію
-if (cameraInput) cameraInput.addEventListener('change', handleImageUpload);
-if (galleryInput) galleryInput.addEventListener('change', handleImageUpload);
+// Функція для перерахунку калорій при зміні ваги в грамах
+function updateFoodUI() {
+    let currentWeight = parseInt(weightInput.value) || 0;
+    
+    // Формула: (базове значення / базова вага) * поточна вага
+    const calc = (baseVal) => Math.round((baseVal / baseWeight) * currentWeight);
 
-// Кнопка "Сфотографувати ще раз"
+    document.getElementById('food-kcal').innerText = calc(baseKcal);
+    document.getElementById('food-protein').innerText = calc(baseProtein);
+    document.getElementById('food-fat').innerText = calc(baseFat);
+    document.getElementById('food-carbs').innerText = calc(baseCarbs);
+}
+
+// Слухаємо зміни в полі ваги (щоразу як ти друкуєш нову цифру)
+if (weightInput) {
+    weightInput.addEventListener('input', updateFoodUI);
+}
+
+// Кнопка "Інше фото"
 if (btnRetakePhoto) {
     btnRetakePhoto.addEventListener('click', () => {
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
-        cameraInput.value = ''; // Скидаємо минулий файл
+        cameraInput.value = ''; 
         tg.HapticFeedback.selectionChanged();
     });
 }
 
-// Кнопка "Додати в Орбіту"
+// Кнопка "Додати в Орбіту" (ВИПРАВЛЕНО: йде в Харчування, а не в Активність)
 if (btnAddFood) {
     btnAddFood.addEventListener('click', () => {
-        // Беремо ккал з екрану
-        const kcal = parseInt(document.getElementById('food-kcal').innerText);
+        // Беремо перераховані цифри з екрану
+        const kcal = parseInt(document.getElementById('food-kcal').innerText) || 0;
+        const protein = parseInt(document.getElementById('food-protein').innerText) || 0;
+        const fat = parseInt(document.getElementById('food-fat').innerText) || 0;
+        const carbs = parseInt(document.getElementById('food-carbs').innerText) || 0;
         
-        // Оновлюємо калорії на головному екрані
-        userData.caloriesToday += kcal;
-        document.getElementById('stat-kcal').innerText = userData.caloriesToday;
+        // Додаємо до СПОЖИТОЇ ЇЖІ (а не до спалених калорій)
+        userData.consumedKcalToday = (userData.consumedKcalToday || 0) + kcal;
+        userData.consumedProtein = (userData.consumedProtein || 0) + protein;
+        userData.consumedFat = (userData.consumedFat || 0) + fat;
+        userData.consumedCarbs = (userData.consumedCarbs || 0) + carbs;
         
-        // Імітуємо клік по кнопці "Орбіта" в нижньому меню
+        // Оновлюємо Орбіту (головний екран)
+        if (typeof updateNutritionUI === "function") {
+            updateNutritionUI();
+        } else {
+            // Якщо раптом функції немає, просто зменшуємо калорії на головному екрані
+            let currentPlanKcal = parseInt(document.getElementById('plan-kcal').innerText) || 0;
+            let remaining = currentPlanKcal - kcal;
+            document.getElementById('plan-kcal').innerText = remaining > 0 ? remaining : 0;
+        }
+        
+        // Повертаємось на Орбіту
         document.querySelector('.nav-item[data-target="main-screen"]').click();
         
-        // Скидаємо сканер для наступного разу
+        // Скидаємо сканер
         resultArea.classList.add('hidden');
         uploadArea.classList.remove('hidden');
         cameraInput.value = '';
         
         tg.HapticFeedback.notificationOccurred('success');
-        tg.showAlert("Страву успішно додано до Орбіти! 🪐");
     });
 }
