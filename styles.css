@@ -1,10 +1,10 @@
 /* Базові кольори в стилі преміум-додатків */
 :root {
-    --bg-dark: #07070A; /* Майже чорний фон */
-    --glow-color: #2563EB; /* Яскравий синій для світіння */
-    --card-bg: rgba(255, 255, 255, 0.05); /* Напівпрозорі картки */
+    --bg-dark: #07070A;
+    --glow-color: #2563EB;
+    --card-bg: rgba(255, 255, 255, 0.05);
     --card-border: rgba(255, 255, 255, 0.1);
-    --primary-gradient: linear-gradient(90deg, #3B82F6, #1D4ED8); /* Градієнт кнопок */
+    --primary-gradient: linear-gradient(90deg, #3B82F6, #1D4ED8);
     --text-main: #FFFFFF;
     --text-muted: #9CA3AF;
 }
@@ -61,9 +61,7 @@ body {
     letter-spacing: -1px;
 }
 
-.text-highlight {
-    color: #3B82F6; 
-}
+.text-highlight { color: #3B82F6; }
 
 .subtitle {
     color: var(--text-muted);
@@ -100,10 +98,7 @@ input, select, textarea {
     -webkit-appearance: none;
 }
 
-input::placeholder, textarea::placeholder {
-    color: #6B7280;
-}
-
+input::placeholder, textarea::placeholder { color: #6B7280; }
 input:focus, select:focus, textarea:focus {
     border-color: #3B82F6;
     background-color: rgba(255, 255, 255, 0.08);
@@ -112,11 +107,11 @@ input:focus, select:focus, textarea:focus {
 /* Кнопки */
 .btn-primary {
     width: 100%;
-    box-sizing: border-box; /* ОСЬ ЦЕЙ РЯДОК ФІКСИТЬ ПРОБЛЕМУ */
+    box-sizing: border-box;
     padding: 18px;
     background: var(--primary-gradient);
     border: none;
-    border-radius: 30px; 
+    border-radius: 30px;
     font-size: 18px;
     font-weight: 600;
     color: white;
@@ -137,7 +132,7 @@ input:focus, select:focus, textarea:focus {
     margin-top: 10px;
 }
 
-/* Картки (Стиль Glassmorphism) */
+/* Картки */
 .card {
     background-color: var(--card-bg);
     border: 1px solid var(--card-border);
@@ -209,7 +204,7 @@ input:focus, select:focus, textarea:focus {
 .mood-dot {
     width: 8px;
     height: 8px;
-    background-color: #10B981; 
+    background-color: #10B981;
     border-radius: 50%;
     box-shadow: 0 0 10px #10B981;
 }
@@ -220,9 +215,7 @@ input:focus, select:focus, textarea:focus {
     align-items: center;
 }
 
-.header h2 {
-    margin: 0;
-}
+.header h2 { margin: 0; }
 
 .highlight-number {
     font-size: 32px;
@@ -235,25 +228,18 @@ input:focus, select:focus, textarea:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Відступ знизу для меню */
-.main-content {
-    padding-bottom: 90px;
-}
+.main-content { padding-bottom: 90px; }
 
-/* Дизайн нижнього меню */
 /* Дизайн нижнього меню */
 .bottom-nav {
     position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
+    bottom: 0; left: 0; right: 0;
     background: rgba(7, 7, 10, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border-top: 1px solid rgba(255, 255, 255, 0.05);
     display: flex;
     justify-content: space-around;
-    /* Трохи зменшив відступ зверху, щоб іконки не "з'їжджали" */
     padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
     z-index: 1000;
 }
@@ -265,19 +251,19 @@ input:focus, select:focus, textarea:focus {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center; /* Центруємо жорстко */
-    gap: 4px; /* Менша відстань між іконкою і текстом */
+    justify-content: center;
+    gap: 4px;
     cursor: pointer;
     transition: all 0.3s;
     width: 25%;
-    padding: 5px 0; /* Прибираємо стандартні відступи кнопок iOS */
+    padding: 5px 0;
     margin: 0;
-    -webkit-tap-highlight-color: transparent; /* Прибирає сірий квадрат при кліку на iOS */
+    -webkit-tap-highlight-color: transparent;
 }
 
 .nav-icon {
     font-size: 24px;
-    line-height: 1; /* Жорстка висота, щоб емодзі не ламали сітку */
+    line-height: 1;
     filter: grayscale(100%) opacity(0.6);
     transition: all 0.3s;
 }
@@ -285,25 +271,15 @@ input:focus, select:focus, textarea:focus {
 .nav-text {
     font-size: 11px;
     font-weight: 500;
-    line-height: 1; /* Рівняємо текст */
+    line-height: 1;
     margin: 0;
 }
 
-.nav-item.active {
-    color: #3B82F6;
-}
-
+.nav-item.active { color: #3B82F6; }
 .nav-item.active .nav-icon {
     filter: grayscale(0%) opacity(1);
     transform: translateY(-2px);
 }
-
-.nav-item.active .nav-icon {
-    filter: grayscale(0%) opacity(1);
-    transform: translateY(-2px);
-}
-
-/* --- НОВІ СТИЛІ ДЛЯ АКТИВНОСТІ ТА СПЛИВАЮЧИХ ВІКОН --- */
 
 /* Дашборд активності */
 .activity-grid {
@@ -343,9 +319,7 @@ input:focus, select:focus, textarea:focus {
     transition: background 0.2s;
 }
 
-.btn-icon:active {
-    background: rgba(255, 255, 255, 0.2);
-}
+.btn-icon:active { background: rgba(255, 255, 255, 0.2); }
 
 /* Модальне вікно (спливаюче вікно) */
 .modal {
@@ -364,10 +338,10 @@ input:focus, select:focus, textarea:focus {
 .modal-content {
     width: 100%;
     max-width: 400px;
-    margin-bottom: 50px; /* Щоб не перекривалося клавіатурою телефону */
+    margin-bottom: 50px;
 }
 
-/* --- СТИЛІ ДЛЯ РИТМУ (AURA x FLO) --- */
+/* СТИЛІ ДЛЯ РИТМУ */
 .horizontal-calendar {
     display: flex;
     gap: 12px;
@@ -392,235 +366,137 @@ input:focus, select:focus, textarea:focus {
     transition: all 0.3s;
 }
 
-/* Сьогоднішній день (Великий кружок) */
 .calendar-day.today {
     background: rgba(255, 255, 255, 0.15);
     border-color: rgba(255, 255, 255, 0.5);
     transform: scale(1.05);
 }
 
-/* Дні місячних (Рожеві/Червоні) */
-.calendar-day.period {
-    background: rgba(236, 72, 153, 0.2);
-    border-color: rgba(236, 72, 153, 0.5);
-}
+.calendar-day.period { background: rgba(236, 72, 153, 0.2); border-color: rgba(236, 72, 153, 0.5); }
 .calendar-day.period .day-number { color: #EC4899; }
-
-/* Дні овуляції (Бірюзові) */
-.calendar-day.ovulation {
-    background: rgba(45, 212, 191, 0.15);
-    border-color: rgba(45, 212, 191, 0.5);
-}
+.calendar-day.ovulation { background: rgba(45, 212, 191, 0.15); border-color: rgba(45, 212, 191, 0.5); }
 .calendar-day.ovulation .day-number { color: #2DD4BF; }
 
 .day-name { font-size: 11px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
 .day-number { font-size: 20px; font-weight: 700; color: white; margin-top: 4px; }
 
-/* Великий круг по центру */
-.cycle-circle-container {
-    display: flex;
-    justify-content: center;
-    margin: 20px 0 30px 0;
-}
+.cycle-circle-container { display: flex; justify-content: center; margin: 20px 0 30px 0; }
 .cycle-circle {
-    width: 200px;
-    height: 200px;
-    border-radius: 50%;
-    /* Красивий градієнтний круг */
+    width: 200px; height: 200px; border-radius: 50%;
     background: radial-gradient(circle at 50% 50%, rgba(236, 72, 153, 0.08), transparent 70%);
     border: 3px solid rgba(236, 72, 153, 0.4); 
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 0 50px rgba(236, 72, 153, 0.15);
-    text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 0 50px rgba(236, 72, 153, 0.15); text-align: center;
 }
 .cycle-value { font-size: 60px; font-weight: 800; color: white; line-height: 1; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
 .cycle-label { font-size: 15px; color: var(--text-muted); width: 80%; line-height: 1.3; }
 
 .cycle-row { margin-bottom: 12px; }
 
-/* --- СИМПТОМИ --- */
-.symptoms-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
+/* СИМПТОМИ */
+.symptoms-grid { display: flex; flex-wrap: wrap; gap: 8px; }
 .symptom-chip {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--card-border);
-    padding: 8px 12px;
-    border-radius: 20px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: all 0.2s;
-    user-select: none;
+    background: rgba(255, 255, 255, 0.05); border: 1px solid var(--card-border);
+    padding: 8px 12px; border-radius: 20px; font-size: 13px; cursor: pointer; transition: all 0.2s; user-select: none;
 }
+.symptom-chip.active { background: rgba(59, 130, 246, 0.3); border-color: #3B82F6; color: white; }
 
-.symptom-chip.active {
-    background: rgba(59, 130, 246, 0.3);
-    border-color: #3B82F6;
-    color: white;
-}
-
-/* --- ІНТЕРАКТИВНИЙ КАЛЕНДАР (ТА ІСТОРІЯ) --- */
+/* ІНТЕРАКТИВНИЙ КАЛЕНДАР */
 .cal-grid-day {
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    border-radius: 50%;
-    margin: 2px;
-    cursor: pointer;
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-    user-select: none;
+    height: 40px; display: flex; align-items: center; justify-content: center;
+    font-size: 15px; border-radius: 50%; margin: 2px; cursor: pointer; transition: all 0.2s; user-select: none;
 }
-
 .cal-grid-day:active { transform: scale(0.9); }
 .cal-grid-day.empty { background: transparent; pointer-events: none; }
 .cal-grid-day.today { border: 2px solid rgba(255, 255, 255, 0.5); font-weight: bold; }
-
-/* Звичайні прогнози */
 .cal-grid-day.period { background: rgba(236, 72, 153, 0.2); color: #EC4899; }
 .cal-grid-day.ovulation { background: rgba(45, 212, 191, 0.15); color: #2DD4BF; }
-
-/* КОЛИ КОРИСТУВАЧ ВІДМІТИВ ДЕНЬ (Як у Flo) */
 .cal-grid-day.user-selected {
-    background: #EC4899 !important;
-    color: white !important;
-    font-weight: bold;
-    box-shadow: 0 0 15px rgba(236, 72, 153, 0.6);
-    border: none;
-    transform: scale(1.05);
+    background: #EC4899 !important; color: white !important; font-weight: bold;
+    box-shadow: 0 0 15px rgba(236, 72, 153, 0.6); border: none; transform: scale(1.05);
 }
-/* --- AURA ФОКУС (СКАНЕР ЇЖІ) --- */
+
+/* Спіннер завантаження */
 .spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid rgba(59, 130, 246, 0.2);
-    border-top: 4px solid #3B82F6;
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
+    width: 40px; height: 40px;
+    border: 4px solid rgba(59, 130, 246, 0.2); border-top: 4px solid #3B82F6;
+    border-radius: 50%; animation: spin 1s linear infinite;
 }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+.pulsate-text { animation: pulsate 1.5s infinite; }
+@keyframes pulsate { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.pulsate-text {
-    animation: pulsate 1.5s infinite;
-}
-
-@keyframes pulsate {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-}
-
-/* --- СТИЛІ КАМЕРИ (AURA SCANNER) --- */
+/* --- СТИЛІ КАМЕРИ НА ВЕСЬ ЕКРАН --- */
 .camera-overlay {
     position: absolute;
     top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none; /* Щоб кліки проходили крізь затемнення */
+    pointer-events: none; 
     display: flex;
     align-items: center;
     justify-content: center;
-    /* Відступ знизу, щоб рамка була по центру над кнопками */
-    padding-bottom: 80px; 
+    padding-bottom: 120px; 
 }
 
 .target-frame {
     position: relative;
-    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.65); /* Створює темний фон навколо рамки */
+    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.7); 
     border-radius: 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Розміри рамок залежно від режиму */
-.camera-overlay.mode-food .target-frame { width: 250px; height: 250px; }
-.camera-overlay.mode-barcode .target-frame { width: 280px; height: 120px; }
-.camera-overlay.mode-label .target-frame { width: 250px; height: 350px; }
+.camera-overlay.mode-food .target-frame { width: 280px; height: 280px; }
+.camera-overlay.mode-barcode .target-frame { width: 300px; height: 140px; }
+.camera-overlay.mode-label .target-frame { width: 280px; height: 380px; }
 
-/* Куточки рамки */
 .corner {
     position: absolute;
     width: 30px;
     height: 30px;
     border-color: white;
     border-style: solid;
-    transition: all 0.3s;
 }
-.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 16px; }
-.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 16px; }
-.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 16px; }
-.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 16px; }
+.tl { top: 0; left: 0; border-width: 4px 0 0 4px; border-top-left-radius: 16px; }
+.tr { top: 0; right: 0; border-width: 4px 4px 0 0; border-top-right-radius: 16px; }
+.bl { bottom: 0; left: 0; border-width: 0 0 4px 4px; border-bottom-left-radius: 16px; }
+.br { bottom: 0; right: 0; border-width: 0 4px 4px 0; border-bottom-right-radius: 16px; }
 
 #scan-hint-camera {
     position: absolute;
-    top: -30px;
-    left: 0;
-    right: 0;
+    top: -40px;
+    left: 0; right: 0;
     text-align: center;
     color: white;
-    font-size: 13px;
+    font-size: 15px;
     font-weight: 500;
-    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    transition: all 0.3s;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
 }
 
-/* Кнопка галереї (зверху праворуч) */
-.gallery-fallback-btn {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    color: white;
-    cursor: pointer;
-    z-index: 20;
-}
-
-/* Нижня панель */
 .camera-bottom-controls {
     position: absolute;
     bottom: 0; left: 0; right: 0;
-    padding: 20px;
+    padding: 20px 20px calc(40px + env(safe-area-inset-bottom)) 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.6) 60%, transparent 100%);
     z-index: 20;
 }
 
-/* Чіпи перемикання режимів */
 .camera-modes {
     display: flex;
-    gap: 10px;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    padding: 5px;
-    border-radius: 30px;
+    gap: 5px;
+    margin-bottom: 25px;
 }
 
 .camera-mode-chip {
-    padding: 8px 16px;
-    border-radius: 20px;
-    font-size: 13px;
+    padding: 10px 18px;
+    border-radius: 30px;
+    font-size: 14px;
     font-weight: 600;
-    color: var(--text-muted);
+    color: rgba(255,255,255,0.6);
     cursor: pointer;
-    transition: all 0.3s;
+    transition: all 0.2s;
+    pointer-events: auto; /* Щоб можна було клікати */
 }
 
 .camera-mode-chip.active {
@@ -628,28 +504,35 @@ input:focus, select:focus, textarea:focus {
     color: black;
 }
 
-/* Кнопка спуску (зробити фото) */
-.capture-btn-container {
-    width: 64px;
-    height: 64px;
-    border-radius: 50%;
-    border: 3px solid white;
+.camera-action-row {
     display: flex;
+    justify-content: space-between;
     align-items: center;
-    justify-content: center;
-    margin-bottom: 10px;
+    width: 100%;
+    max-width: 350px;
+    pointer-events: auto; /* Щоб можна було клікати */
+}
+
+.gallery-btn {
+    width: 44px; height: 44px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 12px;
+    display: flex; justify-content: center; align-items: center;
+    font-size: 22px; color: white; cursor: pointer;
+}
+
+.capture-btn-container {
+    width: 72px; height: 72px;
+    border-radius: 50%;
+    border: 4px solid white;
+    display: flex; align-items: center; justify-content: center;
 }
 
 .capture-btn {
-    width: 54px;
-    height: 54px;
+    width: 58px; height: 58px;
     background: white;
-    border: none;
-    border-radius: 50%;
+    border: none; border-radius: 50%;
     cursor: pointer;
     transition: transform 0.1s;
 }
-
-.capture-btn:active {
-    transform: scale(0.9);
-}
+.capture-btn:active { transform: scale(0.9); }

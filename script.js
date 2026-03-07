@@ -27,7 +27,16 @@ let selectedSymptoms = [];
 
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwsLFa7b3cwAbh1YpVMYo4nLjyfkOuDKAAaLRQoAsQiRoMwdYwjW3QwVDGGFE4FVu_I/exec"; 
 
-const currentUserId = tg.initDataUnsafe?.user?.id || 'test_user_' + Math.floor(Math.random() * 1000);
+// Зберігаємо ID у пам'ять телефону, щоб він не губився
+let currentUserId = tg.initDataUnsafe?.user?.id;
+if (!currentUserId) {
+    currentUserId = localStorage.getItem('aura_persistent_id');
+    if (!currentUserId) {
+        currentUserId = 'test_user_' + Math.floor(Math.random() * 1000000);
+        localStorage.setItem('aura_persistent_id', currentUserId);
+    }
+}
+
 regScreen.classList.add('hidden');
 
 function sendToServer(payload) {
@@ -550,17 +559,9 @@ navItems.forEach(item => {
         const targetId = item.getAttribute('data-target');
         document.getElementById(targetId).classList.remove('hidden');
         tg.HapticFeedback.selectionChanged();
-
-        if (targetId === 'calendar-screen') {
-            setTimeout(() => {
-                const strip = document.getElementById('calendar-strip');
-                const todayEl = document.querySelector('.calendar-day.today');
-                if (strip && todayEl) {
-                    const scrollPos = todayEl.offsetLeft - (strip.offsetWidth / 2) + (todayEl.offsetWidth / 2);
-                    strip.scrollTo({ left: scrollPos, behavior: 'auto' });
-                }
-            }, 50); 
-        }
+        
+        // При перемиканні вкладок завжди зупиняємо камеру
+        stopCamera();
     });
 });
 
@@ -569,7 +570,6 @@ let selectedMealTag = "Сніданок";
 let currentScanMode = 'food';
 
 const focusDatePicker = document.getElementById('focus-date-picker');
-const scanHint = document.getElementById('scan-hint');
 
 if (focusDatePicker) {
     focusDatePicker.valueAsDate = new Date();
@@ -608,19 +608,94 @@ document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => 
     });
 });
 
-// --- ЛОГІКА ВБУДОВАНОЇ КАМЕРИ ---
+function renderFoodHistory() {
+    const list = document.getElementById('food-history-list');
+    list.innerHTML = ''; 
+    const dateStr = focusCurrentDate.toDateString();
+    const logs = userData.foodHistory[dateStr] || [];
+
+    if (logs.length === 0) {
+        list.innerHTML = `
+            <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
+                <span style="font-size: 24px; display: block; margin-bottom: 5px;">🍽</span>
+                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.</p>
+            </div>
+        `;
+        return;
+    }
+
+    logs.forEach(food => {
+        let div = document.createElement('div');
+        div.className = 'card';
+        div.style.padding = '15px'; div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.cursor = 'pointer'; div.style.border = '1px solid rgba(255,255,255,0.05)';
+
+        div.innerHTML = `
+            <div>
+                <h4 style="margin: 0 0 4px 0; font-size: 16px;">${food.name}</h4>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <span style="font-size: 10px; background: rgba(59,130,246,0.2); color: #3B82F6; padding: 2px 6px; border-radius: 6px;">${food.meal}</span>
+                    <span style="font-size: 12px; color: var(--text-muted);">${food.weight} г • ${food.protein}Б / ${food.fat}Ж / ${food.carbs}В</span>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span class="highlight-number" style="font-size: 20px;">${food.kcal}</span>
+                <span style="font-size: 10px; color: var(--text-muted); display: block;">ккал</span>
+            </div>
+        `;
+        div.addEventListener('click', () => openEditFoodModal(food.id));
+        list.appendChild(div);
+    });
+}
+
+function syncFoodWithServer() {
+    const dateStr = focusCurrentDate.toDateString();
+    const logs = userData.foodHistory[dateStr] || [];
+    let dailySum = logs.reduce((sum, f) => sum + f.kcal, 0);
+
+    sendToServer({ 
+        action: "log_food", 
+        userId: currentUserId, 
+        dateStr: focusCurrentDate.toISOString(), 
+        consumedKcal: dailySum,
+        foodLog: JSON.stringify(logs)
+    }).catch(e => console.error(e));
+}
+
+// --- ЛОГІКА ВБУДОВАНОЇ КАМЕРИ НА ВЕСЬ ЕКРАН ---
+const cameraModal = document.getElementById('full-camera-modal');
 const videoElement = document.getElementById('camera-video');
 const cameraOverlay = document.getElementById('camera-overlay');
 const scanHintCamera = document.getElementById('scan-hint-camera');
-const cameraArea = document.getElementById('scanner-camera-area');
 const btnCapture = document.getElementById('btn-capture-photo');
+const cameraInput = document.getElementById('camera-input');
+const loadingArea = document.getElementById('scanner-loading-area');
+const resultArea = document.getElementById('scanner-result-area');
+const foodPreview = document.getElementById('food-preview');
+const btnRetakePhoto = document.getElementById('btn-retake-photo');
+const btnAddFood = document.getElementById('btn-add-food');
+const weightInput = document.getElementById('food-weight-input');
+
+let baseWeight = 150; let baseKcal = 0; let baseProtein = 0; let baseFat = 0; let baseCarbs = 0;
+let baseIngredients = []; 
 let cameraStream = null;
 
-// Функція увімкнення камери
+// Кнопки відкрити/закрити камеру
+document.getElementById('btn-open-camera-modal').addEventListener('click', () => {
+    resultArea.classList.add('hidden');
+    cameraModal.classList.remove('hidden');
+    startCamera();
+    tg.HapticFeedback.impactOccurred('light');
+});
+
+document.getElementById('btn-close-camera').addEventListener('click', () => {
+    cameraModal.classList.add('hidden');
+    stopCamera();
+});
+
+// Запуск камери
 async function startCamera() {
-    if (cameraStream) return; // Вже працює
+    if (cameraStream) return; 
     try {
-        // Просимо доступ до задньої камери
         cameraStream = await navigator.mediaDevices.getUserMedia({ 
             video: { facingMode: "environment" },
             audio: false 
@@ -628,12 +703,11 @@ async function startCamera() {
         videoElement.srcObject = cameraStream;
     } catch (err) {
         console.error("Помилка доступу до камери: ", err);
-        // Якщо немає дозволу - залишаємо можливість завантажити з галереї
-        tg.showAlert("Дозволь доступ до камери, або завантаж фото з галереї (іконка зверху).");
+        tg.showAlert("Дозволь доступ до камери або завантаж фото з галереї (кнопка зліва).");
     }
 }
 
-// Функція вимкнення камери (щоб не садити батарею, коли переходимо на інші вкладки)
+// Вимкнення камери
 function stopCamera() {
     if (cameraStream) {
         cameraStream.getTracks().forEach(track => track.stop());
@@ -642,19 +716,7 @@ function stopCamera() {
     }
 }
 
-// Вмикаємо камеру, коли переходимо на вкладку "Фокус", і вимикаємо на інших
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const targetId = item.getAttribute('data-target');
-        if (targetId === 'scanner-screen') {
-            startCamera();
-        } else {
-            stopCamera();
-        }
-    });
-});
-
-// Перемикання режимів камери (зміна форми рамки)
+// Зміна режимів камери
 document.querySelectorAll('.camera-mode-chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('.camera-mode-chip').forEach(c => c.classList.remove('active'));
@@ -663,7 +725,6 @@ document.querySelectorAll('.camera-mode-chip').forEach(chip => {
         currentScanMode = chip.getAttribute('data-mode');
         tg.HapticFeedback.selectionChanged();
 
-        // Змінюємо клас рамки (CSS анімовано змінить розмір)
         cameraOverlay.className = `camera-overlay mode-${currentScanMode}`;
 
         if (currentScanMode === 'food') {
@@ -676,26 +737,22 @@ document.querySelectorAll('.camera-mode-chip').forEach(chip => {
     });
 });
 
-// Обробка натискання на кнопку "Зробити фото"
+// Кнопка фотографування
 btnCapture.addEventListener('click', () => {
     if (!cameraStream) return;
     tg.HapticFeedback.impactOccurred('medium');
     
-    // Створюємо тимчасовий canvas, щоб "сфотографувати" кадр з відео
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
     
-    // Отримуємо base64 (зменшуємо якість для швидкості)
     const base64Full = canvas.toDataURL('image/jpeg', 0.7);
-    
-    // Передаємо фото в аналізатор
     processCapturedImage(base64Full);
 });
 
-// Обробка завантаження з галереї (резервний варіант)
+// Завантаження з галереї
 if (cameraInput) {
     cameraInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
@@ -720,10 +777,10 @@ if (cameraInput) {
     });
 }
 
-// Загальна функція відправки фото на сервер
+// Загальна відправка фото
 function processCapturedImage(base64String) {
-    cameraArea.classList.add('hidden'); // Ховаємо камеру
-    stopCamera(); // Вимикаємо трансляцію
+    cameraModal.classList.add('hidden'); // Закриваємо модалку камери
+    stopCamera(); 
     loadingArea.classList.remove('hidden'); 
     
     foodPreview.src = base64String; 
@@ -753,91 +810,15 @@ function processCapturedImage(base64String) {
             resultArea.classList.remove('hidden');
             tg.HapticFeedback.notificationOccurred('success');
         } else {
-            alert("Помилка розпізнавання: " + res.message);
-            resetScanner();
+            alert("Помилка: " + res.message);
+            loadingArea.classList.add('hidden');
         }
     }).catch(err => {
         alert("Помилка з'єднання з сервером.");
-        resetScanner();
+        loadingArea.classList.add('hidden');
     });
 }
 
-// Функція для повернення до камери, якщо натиснули "Інше фото"
-function resetScanner() {
-    resultArea.classList.add('hidden'); 
-    loadingArea.classList.add('hidden');
-    cameraArea.classList.remove('hidden'); 
-    cameraInput.value = ''; 
-    startCamera(); // Знову вмикаємо камеру
-}
-
-// Оновлюємо дію кнопки "Інше фото"
-if (btnRetakePhoto) {
-    btnRetakePhoto.addEventListener('click', () => {
-        resetScanner();
-        tg.HapticFeedback.selectionChanged();
-    });
-}
-
-// Також оновлюємо дію кнопки "Додати в Журнал", щоб після додавання повертало камеру
-if (btnAddFood) {
-    btnAddFood.addEventListener('click', () => {
-        // ... (твоя попередня логіка збереження залишається без змін) ...
-        const dateStr = focusCurrentDate.toDateString();
-        if(!userData.foodHistory[dateStr]) userData.foodHistory[dateStr] = [];
-
-        let currentWeight = parseInt(weightInput.value) || 0;
-        let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
-
-        let scaledIngredients = baseIngredients.map(ing => {
-            return {
-                name: ing.name,
-                portion: ing.weight ? ing.weight + ' г' : ing.portion,
-                weight: ing.weight || 0,
-                protein: ing.protein || 0,
-                fat: ing.fat || 0,
-                carbs: ing.carbs || 0,
-                kcal: Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal
-            };
-        });
-
-        const newFood = {
-            id: Date.now(), 
-            name: document.getElementById('food-name').innerText,
-            weight: currentWeight,
-            kcal: parseInt(document.getElementById('food-kcal').innerText) || 0,
-            protein: parseInt(document.getElementById('food-protein').innerText) || 0,
-            fat: parseInt(document.getElementById('food-fat').innerText) || 0,
-            carbs: parseInt(document.getElementById('food-carbs').innerText) || 0,
-            meal: selectedMealTag,
-            ingredients: scaledIngredients 
-        };
-        
-        userData.foodHistory[dateStr].push(newFood);
-        
-        recalculateNutritionForSelectedDate(); 
-        renderFoodHistory(); 
-        syncFoodWithServer(); 
-        
-        // Ось тут зміни: повертаємося до сканера
-        resetScanner();
-        
-        document.getElementById('food-history-container').scrollIntoView({behavior: "smooth"});
-        tg.HapticFeedback.notificationOccurred('success');
-    });
-}
-if (cameraInput) {
-    cameraInput.addEventListener('change', function(event) {
-        const file = event.target.files[0];
-        if (!file) return;
-
-        uploadArea.classList.add('hidden'); 
-        loadingArea.classList.remove('hidden'); 
-        tg.HapticFeedback.impactOccurred('medium');
-        
-        compressImageAndSend(file);
-    });
-}
 
 function updateFoodUI() {
     let currentWeight = parseInt(weightInput.value) || 0;
@@ -857,7 +838,6 @@ function updateFoodUI() {
     
     if (baseIngredients && baseIngredients.length > 0) {
         baseIngredients.forEach((ing, index) => {
-            // Відображаємо вагу інгредієнта, або текстову порцію
             let displayPortion = ing.weight ? ing.weight + ' г' : ing.portion;
             let scaledIngKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal;
             
@@ -893,7 +873,10 @@ if (weightInput) weightInput.addEventListener('input', updateFoodUI);
 
 if (btnRetakePhoto) {
     btnRetakePhoto.addEventListener('click', () => {
-        resultArea.classList.add('hidden'); uploadArea.classList.remove('hidden'); cameraInput.value = ''; 
+        resultArea.classList.add('hidden'); 
+        // Повертаємось у камеру, якщо натиснули "Відхилити сканування"
+        cameraModal.classList.remove('hidden'); 
+        startCamera();
         tg.HapticFeedback.selectionChanged();
     });
 }
@@ -936,7 +919,7 @@ if (btnAddFood) {
         renderFoodHistory(); 
         syncFoodWithServer(); 
         
-        resultArea.classList.add('hidden'); uploadArea.classList.remove('hidden'); cameraInput.value = '';
+        resultArea.classList.add('hidden'); 
         document.getElementById('food-history-container').scrollIntoView({behavior: "smooth"});
         tg.HapticFeedback.notificationOccurred('success');
     });
@@ -1062,8 +1045,6 @@ document.getElementById('btn-save-edit-food').addEventListener('click', () => {
 let currentIngContext = 'scanner'; 
 let editingIngIndex = null;
 const editIngModal = document.getElementById('edit-ingredient-modal');
-
-// Зберігаємо початкові значення, щоб рахувати пропорцію
 let origIngBase = { weight: 100, kcal: 0, protein: 0, fat: 0, carbs: 0 };
 
 function openEditIngredientModal(index, context = 'scanner') {
@@ -1090,7 +1071,6 @@ function openEditIngredientModal(index, context = 'scanner') {
         let ing = currentList[index];
         document.getElementById('edit-ing-name').value = ing.name;
         
-        // Витягуємо вагу з числа або зі старого текстового 'portion'
         let w = parseFloat(ing.weight) || parseFloat(ing.portion) || 100;
         let k = ing.kcal || 0;
         let p = ing.protein || 0;
@@ -1110,9 +1090,8 @@ function openEditIngredientModal(index, context = 'scanner') {
     tg.HapticFeedback.impactOccurred('light');
 }
 
-// Автоматичний перерахунок при зміні ваги інгредієнта
 document.getElementById('edit-ing-weight').addEventListener('input', (e) => {
-    if (editingIngIndex === -1) return; // Для нових інгредієнтів не перераховуємо автоматично
+    if (editingIngIndex === -1) return; 
     
     let newWeight = parseFloat(e.target.value) || 0;
     let safeOrigWeight = origIngBase.weight > 0 ? origIngBase.weight : 1;
@@ -1186,7 +1165,6 @@ document.getElementById('btn-save-edit-ingredient').addEventListener('click', ()
             ing.carbs = newCarbs;
         }
         
-        // Оновлюємо інпути в модалці самої страви
         editKcalInput.value = tempEditFood.kcal;
         editProteinInput.value = tempEditFood.protein;
         editFatInput.value = tempEditFood.fat;
