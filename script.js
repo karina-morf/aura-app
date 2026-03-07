@@ -40,7 +40,7 @@ function sendToServer(payload) {
     }).then(res => res.json());
 }
 
-// --- НОВА ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (МОЖЕ ЙТИ В МІНУС І СТАВАТИ ЧЕРВОНИМ) ---
+// --- ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (БЕЗ ЧЕРВОНОГО КОЛЬОРУ) ---
 function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
     let remKcal = userData.goalKcal - totalKcal;
     let remProtein = userData.goalProtein - totalProtein;
@@ -50,12 +50,8 @@ function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
     const setElement = (id, val) => {
         const el = document.getElementById(id);
         el.innerText = val;
-        // Якщо значення від'ємне - робимо його червоним
-        if (val < 0) {
-            el.style.color = '#EF4444'; // Червоний колір
-        } else {
-            el.style.color = ''; // Повертаємо стандартний колір
-        }
+        // Залишаємо стандартний колір, навіть якщо значення від'ємне
+        el.style.color = ''; 
     };
 
     setElement('plan-kcal', remKcal);
