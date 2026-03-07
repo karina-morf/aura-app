@@ -20,13 +20,13 @@ let userData = {
     weight: 0, waterGoal: 0, waterCurrent: 0, 
     stepsToday: 0, distanceToday: 0, burnedKcalToday: 0, // Фітнес
     goalKcal: 0, goalProtein: 0, goalFat: 0, goalCarbs: 0, // Цілі БЖВ
-    consumedKcalToday: 0, consumedProtein: 0, consumedFat: 0, consumedCarbs: 0, // Спожито їжі
+    consumedKcalToday: 0, consumedProtein: 0, consumedFat: 0, consumedCarbs: 0, 
     history: {}, customTags: [],
     foodHistory: {} // Історія по датах
 };
 let selectedSymptoms = [];
 
-// ⚠️ Твоє посилання на Google Apps Script ⚠️
+// ⚠️ Твоє посилання на Google Apps Script
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwsLFa7b3cwAbh1YpVMYo4nLjyfkOuDKAAaLRQoAsQiRoMwdYwjW3QwVDGGFE4FVu_I/exec"; 
 
 const currentUserId = tg.initDataUnsafe?.user?.id || 'test_user_' + Math.floor(Math.random() * 1000);
@@ -40,38 +40,52 @@ function sendToServer(payload) {
     }).then(res => res.json());
 }
 
-// --- ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (ВІДНІМАЄМО) ---
-function updateNutritionUI() {
-    let remainingKcal = userData.goalKcal - userData.consumedKcalToday;
-    let remProtein = userData.goalProtein - userData.consumedProtein;
-    let remFat = userData.goalFat - userData.consumedFat;
-    let remCarbs = userData.goalCarbs - userData.consumedCarbs;
+// --- НОВА ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (МОЖЕ ЙТИ В МІНУС І СТАВАТИ ЧЕРВОНИМ) ---
+function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
+    let remKcal = userData.goalKcal - totalKcal;
+    let remProtein = userData.goalProtein - totalProtein;
+    let remFat = userData.goalFat - totalFat;
+    let remCarbs = userData.goalCarbs - totalCarbs;
 
-    document.getElementById('plan-kcal').innerText = remainingKcal > 0 ? remainingKcal : 0;
-    document.getElementById('plan-protein').innerText = remProtein > 0 ? remProtein : 0;
-    document.getElementById('plan-fat').innerText = remFat > 0 ? remFat : 0;
-    document.getElementById('plan-carbs').innerText = remCarbs > 0 ? remCarbs : 0;
+    const setElement = (id, val) => {
+        const el = document.getElementById(id);
+        el.innerText = val;
+        // Якщо значення від'ємне - робимо його червоним
+        if (val < 0) {
+            el.style.color = '#EF4444'; // Червоний колір
+        } else {
+            el.style.color = ''; // Повертаємо стандартний колір
+        }
+    };
+
+    setElement('plan-kcal', remKcal);
+    setElement('plan-protein', remProtein);
+    setElement('plan-fat', remFat);
+    setElement('plan-carbs', remCarbs);
 }
 
-// Перераховує загальні показники ДЛЯ СЬОГОДНІШНЬОГО ДНЯ
-function recalculateTodayNutrition() {
+// Перераховує загальні показники ДЛЯ ОБРАНОЇ ДАТИ В КАЛЕНДАРІ
+function recalculateNutritionForSelectedDate() {
     let totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0;
-    const todayStr = new Date().toDateString();
-    const todayLogs = userData.foodHistory[todayStr] || [];
+    const dateStr = focusCurrentDate.toDateString();
+    const logs = userData.foodHistory[dateStr] || [];
     
-    todayLogs.forEach(food => {
+    logs.forEach(food => {
         totalKcal += food.kcal;
         totalProtein += food.protein;
         totalFat += food.fat;
         totalCarbs += food.carbs;
     });
 
-    userData.consumedKcalToday = totalKcal;
-    userData.consumedProtein = totalProtein;
-    userData.consumedFat = totalFat;
-    userData.consumedCarbs = totalCarbs;
+    // Оновлюємо глобальні змінні, тільки якщо обрана дата - це сьогодні
+    if (dateStr === new Date().toDateString()) {
+        userData.consumedKcalToday = totalKcal;
+        userData.consumedProtein = totalProtein;
+        userData.consumedFat = totalFat;
+        userData.consumedCarbs = totalCarbs;
+    }
     
-    updateNutritionUI();
+    updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs);
 }
 
 // --- 1. ПЕРЕВІРКА КОРИСТУВАЧА ---
@@ -111,9 +125,8 @@ function checkUser() {
             document.getElementById('stat-distance').innerText = userData.distanceToday;
             document.getElementById('stat-kcal').innerText = userData.burnedKcalToday;
 
-            recalculateTodayNutrition(); 
+            updateFocusDateUI(); // Це автоматично запустить recalculateNutritionForSelectedDate
             renderCustomTags(); 
-            updateFocusDateUI();
 
             if (data.userData.cycleStart && data.userData.cycleDuration) {
                 const periodDuration = data.userData.periodDuration || 5; 
@@ -171,7 +184,7 @@ btnRegister.addEventListener('click', () => {
         document.getElementById('water-current').innerText = 0;
         document.getElementById('greeting-name').innerText = `Привіт, ${tg.initDataUnsafe?.user?.first_name || 'Гість'}!`;
         
-        recalculateTodayNutrition();
+        recalculateNutritionForSelectedDate();
         
         regScreen.classList.add('hidden');
         document.getElementById('main-screen').classList.remove('hidden');
@@ -572,7 +585,7 @@ navItems.forEach(item => {
 let focusCurrentDate = new Date(); 
 let selectedMealTag = "Сніданок"; 
 let editingFoodId = null;
-let currentScanMode = 'food'; // За замовчуванням скануємо страву
+let currentScanMode = 'food';
 
 const focusDatePicker = document.getElementById('focus-date-picker');
 const scanHint = document.getElementById('scan-hint');
@@ -592,6 +605,8 @@ function updateFocusDateUI() {
         document.getElementById('focus-date-text').innerText = `📅 ${focusCurrentDate.toLocaleDateString('uk-UA', options)} ▾`;
     }
     renderFoodHistory();
+    // ОНОВЛЮЄМО МАКРОСИ ДЛЯ ОБРАНОГО ДНЯ ПРИ КОЖНІЙ ЗМІНІ ДАТИ
+    recalculateNutritionForSelectedDate(); 
 }
 
 if (focusDatePicker) {
@@ -643,7 +658,7 @@ function renderFoodHistory() {
         list.innerHTML = `
             <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
                 <span style="font-size: 24px; display: block; margin-bottom: 5px;">🍽</span>
-                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.</p>
+                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.<br>Відскануй свою першу страву!</p>
             </div>
         `;
         return;
@@ -722,7 +737,7 @@ function compressImageAndSend(file) {
             sendToServer({ 
                 action: "analyze_food", 
                 imageB64: b64Data,
-                scanMode: currentScanMode // Передаємо обраний режим!
+                scanMode: currentScanMode
             })
             .then(res => {
                 if (res.status === 'success') {
@@ -806,7 +821,7 @@ if (btnAddFood) {
         
         userData.foodHistory[dateStr].push(newFood);
         
-        recalculateTodayNutrition(); 
+        recalculateNutritionForSelectedDate(); 
         renderFoodHistory(); 
         syncFoodWithServer(); 
         
@@ -843,7 +858,7 @@ document.getElementById('btn-delete-food').addEventListener('click', () => {
     const dateStr = focusCurrentDate.toDateString();
     userData.foodHistory[dateStr] = userData.foodHistory[dateStr].filter(f => f.id !== editingFoodId);
     
-    recalculateTodayNutrition(); renderFoodHistory(); syncFoodWithServer(); 
+    recalculateNutritionForSelectedDate(); renderFoodHistory(); syncFoodWithServer(); 
     editFoodModal.classList.add('hidden'); tg.HapticFeedback.notificationOccurred('success');
 });
 
@@ -863,6 +878,6 @@ document.getElementById('btn-save-edit-food').addEventListener('click', () => {
         food.fat = Math.round(food.fat * ratio); 
         food.carbs = Math.round(food.carbs * ratio);
     }
-    recalculateTodayNutrition(); renderFoodHistory(); syncFoodWithServer(); 
+    recalculateNutritionForSelectedDate(); renderFoodHistory(); syncFoodWithServer(); 
     editFoodModal.classList.add('hidden'); tg.HapticFeedback.notificationOccurred('success');
 });
