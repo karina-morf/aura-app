@@ -694,7 +694,10 @@ document.getElementById('btn-close-camera').addEventListener('click', () => {
 
 // Запуск камери
 async function startCamera() {
-    if (cameraStream) return; 
+    if (cameraStream) {
+        videoElement.play(); 
+        return;
+    } 
     try {
         cameraStream = await navigator.mediaDevices.getUserMedia({ 
             video: { facingMode: "environment" },
@@ -707,13 +710,11 @@ async function startCamera() {
     }
 }
 
-// Вимкнення камери
+// Вимкнення камери (пуста, щоб не запитувало дозвіл знову!)
 function stopCamera() {
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
-        videoElement.srcObject = null;
-    }
+    // Ми залишаємо цю функцію абсолютно ПУСТОЮ.
+    // Камера продовжуватиме працювати у фоні, навіть коли вікно сканера закрите.
+    // Це гарантує, що телефон більше ніколи не запитає дозвіл під час сесії!
 }
 
 // Зміна режимів камери
@@ -780,7 +781,6 @@ if (cameraInput) {
 // Загальна відправка фото
 function processCapturedImage(base64String) {
     cameraModal.classList.add('hidden'); // Закриваємо модалку камери
-    stopCamera(); 
     loadingArea.classList.remove('hidden'); 
     
     foodPreview.src = base64String; 
@@ -833,13 +833,19 @@ function updateFoodUI() {
     const ingSection = document.getElementById('ingredients-section');
     const ingList = document.getElementById('food-ingredients-list');
     
-    ingSection.classList.remove('hidden'); 
-    ingList.innerHTML = '';
-    
+    // Перевіряємо, чи взагалі є справжні інгредієнти
+    let validIngredients = [];
     if (baseIngredients && baseIngredients.length > 0) {
-        baseIngredients.forEach((ing, index) => {
-            let displayPortion = ing.weight ? ing.weight + ' г' : ing.portion;
-            let scaledIngKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal;
+        validIngredients = baseIngredients.filter(ing => ing.name && ing.name !== "undefined" && String(ing.name).trim() !== "");
+    }
+
+    if (validIngredients.length > 0) {
+        ingSection.classList.remove('hidden'); 
+        ingList.innerHTML = '';
+        
+        validIngredients.forEach((ing, index) => {
+            let displayPortion = ing.weight ? ing.weight + ' г' : (ing.portion || "1 порція");
+            let scaledIngKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal || 0;
             
             let div = document.createElement('div');
             div.style.background = 'rgba(255,255,255,0.03)';
@@ -865,7 +871,9 @@ function updateFoodUI() {
             ingList.appendChild(div);
         });
     } else {
-        ingList.innerHTML = '<p style="font-size:12px; color:var(--text-muted); margin: 0;">Немає деталей інгредієнтів</p>';
+        // Якщо інгредієнтів немає (як у випадку зі штрих-кодом)
+        ingSection.classList.remove('hidden'); 
+        ingList.innerHTML = '<p style="font-size:12px; color:var(--text-muted); margin: 0; text-align: center;">Немає деталей інгредієнтів</p>';
     }
 }
 
