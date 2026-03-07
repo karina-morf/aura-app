@@ -18,11 +18,11 @@ const allScreens = document.querySelectorAll('.main-content');
 // --- ОБ'ЄКТ КОРИСТУВАЧА ---
 let userData = { 
     weight: 0, waterGoal: 0, waterCurrent: 0, 
-    stepsToday: 0, distanceToday: 0, burnedKcalToday: 0, // Фітнес
-    goalKcal: 0, goalProtein: 0, goalFat: 0, goalCarbs: 0, // Цілі БЖВ
+    stepsToday: 0, distanceToday: 0, burnedKcalToday: 0, 
+    goalKcal: 0, goalProtein: 0, goalFat: 0, goalCarbs: 0, 
     consumedKcalToday: 0, consumedProtein: 0, consumedFat: 0, consumedCarbs: 0, 
     history: {}, customTags: [],
-    foodHistory: {} // Історія по датах
+    foodHistory: {} 
 };
 let selectedSymptoms = [];
 
@@ -40,7 +40,6 @@ function sendToServer(payload) {
     }).then(res => res.json());
 }
 
-// --- ФУНКЦІЯ ОНОВЛЕННЯ БЖВ (БЕЗ ЧЕРВОНОГО КОЛЬОРУ) ---
 function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
     let remKcal = userData.goalKcal - totalKcal;
     let remProtein = userData.goalProtein - totalProtein;
@@ -50,7 +49,6 @@ function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
     const setElement = (id, val) => {
         const el = document.getElementById(id);
         el.innerText = val;
-        // Залишаємо стандартний колір, навіть якщо значення від'ємне
         el.style.color = ''; 
     };
 
@@ -60,7 +58,6 @@ function updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs) {
     setElement('plan-carbs', remCarbs);
 }
 
-// Перераховує загальні показники ДЛЯ ОБРАНОЇ ДАТИ В КАЛЕНДАРІ
 function recalculateNutritionForSelectedDate() {
     let totalKcal = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0;
     const dateStr = focusCurrentDate.toDateString();
@@ -73,7 +70,6 @@ function recalculateNutritionForSelectedDate() {
         totalCarbs += food.carbs;
     });
 
-    // Оновлюємо глобальні змінні, тільки якщо обрана дата - це сьогодні
     if (dateStr === new Date().toDateString()) {
         userData.consumedKcalToday = totalKcal;
         userData.consumedProtein = totalProtein;
@@ -84,7 +80,6 @@ function recalculateNutritionForSelectedDate() {
     updateNutritionUI(totalKcal, totalProtein, totalFat, totalCarbs);
 }
 
-// --- 1. ПЕРЕВІРКА КОРИСТУВАЧА ---
 function checkUser() {
     sendToServer({ action: "check_user", userId: currentUserId })
     .then(data => {
@@ -121,7 +116,7 @@ function checkUser() {
             document.getElementById('stat-distance').innerText = userData.distanceToday;
             document.getElementById('stat-kcal').innerText = userData.burnedKcalToday;
 
-            updateFocusDateUI(); // Це автоматично запустить recalculateNutritionForSelectedDate
+            updateFocusDateUI(); 
             renderCustomTags(); 
 
             if (data.userData.cycleStart && data.userData.cycleDuration) {
@@ -141,7 +136,6 @@ function checkUser() {
 }
 checkUser();
 
-// --- 2. РЕЄСТРАЦІЯ ТА РОЗРАХУНОК КБЖВ ---
 btnRegister.addEventListener('click', () => {
     const gender = document.getElementById('gender').value;
     const age = parseInt(document.getElementById('age').value);
@@ -191,7 +185,6 @@ btnRegister.addEventListener('click', () => {
     });
 });
 
-// --- 3. ВОДА ТА АКТИВНІСТЬ ---
 btnWater.addEventListener('click', () => {
     userData.waterCurrent += 250;
     document.getElementById('water-current').innerText = userData.waterCurrent;
@@ -223,7 +216,6 @@ btnSaveActivity.addEventListener('click', () => {
     sendToServer({ action: "log_activity", userId: currentUserId, steps: steps, distance: distance, calories: calories }).catch(e=>console.error(e));
 });
 
-// --- 5. ЖІНОЧИЙ КАЛЕНДАР ---
 function renderRhythmDashboard(startDateStr, cycleDuration, periodDuration) {
     document.getElementById('rhythm-setup').classList.add('hidden');
     document.getElementById('rhythm-dashboard').classList.remove('hidden');
@@ -327,7 +319,6 @@ btnSaveCycle.addEventListener('click', () => {
     });
 });
 
-// --- СИМПТОМИ ТА ТЕГИ ---
 let currentSymptomDate = new Date(); 
 const symptomsModal = document.getElementById('symptoms-modal');
 const dayInfoModal = document.getElementById('day-info-modal');
@@ -424,7 +415,6 @@ document.getElementById('btn-save-symptoms').addEventListener('click', () => {
     });
 });
 
-// --- ІНТЕРАКТИВНИЙ КАЛЕНДАР ---
 let calendarMode = 'view';
 const fullCalModal = document.getElementById('full-calendar-modal');
 const btnOpenInteractiveCal = document.getElementById('btn-open-interactive-cal');
@@ -553,7 +543,6 @@ document.getElementById('btn-save-calendar-dates').addEventListener('click', () 
     });
 });
 
-// --- 6. НАВІГАЦІЯ ---
 navItems.forEach(item => {
     item.addEventListener('click', () => {
         navItems.forEach(nav => nav.classList.remove('active'));
@@ -577,7 +566,6 @@ navItems.forEach(item => {
     });
 });
 
-// --- 7. AURA ФОКУС (СКАНЕР, КАЛЕНДАР ТА ІСТОРІЯ) ---
 let focusCurrentDate = new Date(); 
 let selectedMealTag = "Сніданок"; 
 let editingFoodId = null;
@@ -601,7 +589,6 @@ function updateFocusDateUI() {
         document.getElementById('focus-date-text').innerText = `📅 ${focusCurrentDate.toLocaleDateString('uk-UA', options)} ▾`;
     }
     renderFoodHistory();
-    // ОНОВЛЮЄМО МАКРОСИ ДЛЯ ОБРАНОГО ДНЯ ПРИ КОЖНІЙ ЗМІНІ ДАТИ
     recalculateNutritionForSelectedDate(); 
 }
 
@@ -615,7 +602,6 @@ if (focusDatePicker) {
     });
 }
 
-// Логіка кнопок "Прийом їжі"
 document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => {
     chip.addEventListener('click', (e) => {
         document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(c => c.classList.remove('active'));
@@ -625,7 +611,6 @@ document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => 
     });
 });
 
-// Логіка кнопок "Режим сканування"
 document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(c => c.classList.remove('active'));
@@ -706,9 +691,10 @@ const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
 const weightInput = document.getElementById('food-weight-input');
 
+// --- ГЛОБАЛЬНІ ЗМІННІ ДЛЯ ІНГРЕДІЄНТІВ ---
 let baseWeight = 150; let baseKcal = 0; let baseProtein = 0; let baseFat = 0; let baseCarbs = 0;
+let baseIngredients = []; // Сюди будемо зберігати масив від ШІ
 
-// Стиснення фото та запит до Gemini
 function compressImageAndSend(file) {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -729,7 +715,6 @@ function compressImageAndSend(file) {
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
             const b64Data = compressedBase64.split(',')[1]; 
             
-            // Відправляємо на сервер
             sendToServer({ 
                 action: "analyze_food", 
                 imageB64: b64Data,
@@ -743,8 +728,12 @@ function compressImageAndSend(file) {
                     baseFat = res.data.fat || 0;
                     baseCarbs = res.data.carbs || 0;
                     
+                    // Зберігаємо інгредієнти (або пустий масив, якщо їх немає)
+                    baseIngredients = res.data.ingredients || [];
+                    
                     document.getElementById('food-name').innerText = res.data.name || "Невідома страва";
                     weightInput.value = baseWeight;
+                    
                     updateFoodUI();
                     
                     loadingArea.classList.add('hidden');
@@ -784,10 +773,49 @@ function updateFoodUI() {
     let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
     const calc = (baseVal) => Math.round((baseVal / safeBaseWeight) * currentWeight);
     
+    // Оновлюємо загальні КБЖВ
     document.getElementById('food-kcal').innerText = calc(baseKcal);
     document.getElementById('food-protein').innerText = calc(baseProtein);
     document.getElementById('food-fat').innerText = calc(baseFat);
     document.getElementById('food-carbs').innerText = calc(baseCarbs);
+    
+    // --- ОНОВЛЮЄМО СПИСОК ІНГРЕДІЄНТІВ ---
+    const ingSection = document.getElementById('ingredients-section');
+    const ingList = document.getElementById('food-ingredients-list');
+    
+    if (baseIngredients && baseIngredients.length > 0) {
+        ingSection.classList.remove('hidden');
+        ingList.innerHTML = '';
+        
+        baseIngredients.forEach(ing => {
+            // Рахуємо калорії інгредієнта пропорційно новій загальній вазі
+            let scaledIngKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal;
+            
+            let div = document.createElement('div');
+            // Стиль картки для кожного інгредієнта
+            div.style.background = 'rgba(255,255,255,0.03)';
+            div.style.border = '1px solid rgba(255,255,255,0.05)';
+            div.style.borderRadius = '16px';
+            div.style.padding = '12px 16px';
+            div.style.display = 'flex';
+            div.style.justifyContent = 'space-between';
+            div.style.alignItems = 'center';
+            
+            div.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 4px;">
+                    <span style="font-size: 15px; font-weight: 600; color: white;">${ing.name}</span>
+                    <span style="font-size: 12px; color: var(--text-muted);">${ing.portion}</span>
+                </div>
+                <div style="text-align: right;">
+                    <span style="color: #3B82F6; font-weight: 600; font-size: 15px;">🔥 ${scaledIngKcal} <span style="font-size:10px; font-weight:normal; color:var(--text-muted);">ккал</span></span>
+                </div>
+            `;
+            ingList.appendChild(div);
+        });
+    } else {
+        // Якщо інгредієнтів немає (наприклад, у режимі штрихкоду) - ховаємо блок
+        ingSection.classList.add('hidden');
+    }
 }
 
 if (weightInput) weightInput.addEventListener('input', updateFoodUI);
