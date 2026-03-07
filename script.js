@@ -25,7 +25,6 @@ let userData = {
 };
 let selectedSymptoms = [];
 
-// ⚠️ Твоє посилання на Google Apps Script
 const GOOGLE_API_URL = "https://script.google.com/macros/s/AKfycbwsLFa7b3cwAbh1YpVMYo4nLjyfkOuDKAAaLRQoAsQiRoMwdYwjW3QwVDGGFE4FVu_I/exec"; 
 
 const currentUserId = tg.initDataUnsafe?.user?.id || 'test_user_' + Math.floor(Math.random() * 1000);
@@ -689,9 +688,8 @@ const btnRetakePhoto = document.getElementById('btn-retake-photo');
 const btnAddFood = document.getElementById('btn-add-food');
 const weightInput = document.getElementById('food-weight-input');
 
-// --- ГЛОБАЛЬНІ ЗМІННІ ДЛЯ ІНГРЕДІЄНТІВ ---
 let baseWeight = 150; let baseKcal = 0; let baseProtein = 0; let baseFat = 0; let baseCarbs = 0;
-let baseIngredients = []; // Сюди зберігаємо масив від ШІ
+let baseIngredients = []; 
 
 function compressImageAndSend(file) {
     const reader = new FileReader();
@@ -713,7 +711,6 @@ function compressImageAndSend(file) {
             const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
             const b64Data = compressedBase64.split(',')[1]; 
             
-            // Очищуємо старі дані перед новим сканом
             baseIngredients = [];
             
             sendToServer({ 
@@ -729,7 +726,6 @@ function compressImageAndSend(file) {
                     baseFat = res.data.fat || 0;
                     baseCarbs = res.data.carbs || 0;
                     
-                    // Зберігаємо інгредієнти (якщо їх немає, буде пустий масив)
                     baseIngredients = res.data.ingredients || [];
                     
                     document.getElementById('food-name').innerText = res.data.name || "Невідома страва";
@@ -774,17 +770,15 @@ function updateFoodUI() {
     let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
     const calc = (baseVal) => Math.round((baseVal / safeBaseWeight) * currentWeight);
     
-    // Оновлюємо загальні КБЖВ
     document.getElementById('food-kcal').innerText = calc(baseKcal);
     document.getElementById('food-protein').innerText = calc(baseProtein);
     document.getElementById('food-fat').innerText = calc(baseFat);
     document.getElementById('food-carbs').innerText = calc(baseCarbs);
     
-    // --- ОНОВЛЮЄМО СПИСОК ІНГРЕДІЄНТІВ ---
     const ingSection = document.getElementById('ingredients-section');
     const ingList = document.getElementById('food-ingredients-list');
     
-    ingSection.classList.remove('hidden'); // Завжди показуємо блок, щоб була кнопка "Додати"
+    ingSection.classList.remove('hidden'); 
     ingList.innerHTML = '';
     
     if (baseIngredients && baseIngredients.length > 0) {
@@ -811,11 +805,10 @@ function updateFoodUI() {
                     <span style="font-size: 14px; color: var(--text-muted); opacity: 0.7;">✏️</span>
                 </div>
             `;
-            div.addEventListener('click', () => openEditIngredientModal(index));
+            div.addEventListener('click', () => openEditIngredientModal(index, 'scanner'));
             ingList.appendChild(div);
         });
     } else {
-        // Якщо інгредієнтів немає (наприклад, штрихкод)
         ingList.innerHTML = '<p style="font-size:12px; color:var(--text-muted); margin: 0;">Немає деталей інгредієнтів</p>';
     }
 }
@@ -834,16 +827,27 @@ if (btnAddFood) {
         const dateStr = focusCurrentDate.toDateString();
         if(!userData.foodHistory[dateStr]) userData.foodHistory[dateStr] = [];
 
+        let currentWeight = parseInt(weightInput.value) || 0;
+        let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+
+        let scaledIngredients = baseIngredients.map(ing => {
+            return {
+                name: ing.name,
+                portion: ing.portion,
+                kcal: Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal
+            };
+        });
+
         const newFood = {
             id: Date.now(), 
             name: document.getElementById('food-name').innerText,
-            weight: parseInt(weightInput.value) || 0,
+            weight: currentWeight,
             kcal: parseInt(document.getElementById('food-kcal').innerText) || 0,
             protein: parseInt(document.getElementById('food-protein').innerText) || 0,
             fat: parseInt(document.getElementById('food-fat').innerText) || 0,
             carbs: parseInt(document.getElementById('food-carbs').innerText) || 0,
             meal: selectedMealTag,
-            ingredients: JSON.parse(JSON.stringify(baseIngredients)) // Зберігаємо копію інгредієнтів
+            ingredients: scaledIngredients 
         };
         
         userData.foodHistory[dateStr].push(newFood);
@@ -858,13 +862,51 @@ if (btnAddFood) {
     });
 }
 
-
 // --- ЛОГІКА РЕДАГУВАННЯ ЗАГАЛЬНОЇ СТРАВИ (З ЖУРНАЛУ) ---
 let editingFoodId = null;
+let tempEditFood = null; 
 const editFoodModal = document.getElementById('edit-food-modal');
 const editNameInput = document.getElementById('edit-food-name'); 
 const editWeightInput = document.getElementById('edit-food-weight');
 const editKcalInput = document.getElementById('edit-food-kcal');
+
+// Нові змінні для полів БЖВ
+const editProteinInput = document.getElementById('edit-food-protein');
+const editFatInput = document.getElementById('edit-food-fat');
+const editCarbsInput = document.getElementById('edit-food-carbs');
+
+function renderJournalIngredients() {
+    const list = document.getElementById('edit-journal-ingredients-list');
+    list.innerHTML = '';
+    if (!tempEditFood.ingredients || tempEditFood.ingredients.length === 0) {
+        list.innerHTML = '<p style="font-size:12px; color:var(--text-muted); margin: 0;">Немає деталей інгредієнтів</p>';
+        return;
+    }
+    tempEditFood.ingredients.forEach((ing, index) => {
+        let div = document.createElement('div');
+        div.style.background = 'rgba(255,255,255,0.03)';
+        div.style.border = '1px solid rgba(255,255,255,0.05)';
+        div.style.borderRadius = '12px';
+        div.style.padding = '10px 14px';
+        div.style.display = 'flex';
+        div.style.justifyContent = 'space-between';
+        div.style.alignItems = 'center';
+        div.style.cursor = 'pointer';
+        
+        div.innerHTML = `
+            <div style="display: flex; flex-direction: column; gap: 2px;">
+                <span style="font-size: 14px; font-weight: 600; color: white;">${ing.name}</span>
+                <span style="font-size: 11px; color: var(--text-muted);">${ing.portion}</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: #3B82F6; font-weight: 600; font-size: 14px;">🔥 ${ing.kcal} <span style="font-size:10px; font-weight:normal; color:var(--text-muted);">ккал</span></span>
+                <span style="font-size: 12px; color: var(--text-muted); opacity: 0.7;">✏️</span>
+            </div>
+        `;
+        div.addEventListener('click', () => openEditIngredientModal(index, 'journal'));
+        list.appendChild(div);
+    });
+}
 
 function openEditFoodModal(id) {
     const dateStr = focusCurrentDate.toDateString();
@@ -872,13 +914,38 @@ function openEditFoodModal(id) {
     if (!food) return;
 
     editingFoodId = id;
-    editNameInput.value = food.name; 
-    editWeightInput.value = food.weight;
-    editKcalInput.value = food.kcal;
+    tempEditFood = JSON.parse(JSON.stringify(food)); 
+    if(!tempEditFood.ingredients) tempEditFood.ingredients = [];
+    
+    editNameInput.value = tempEditFood.name; 
+    editWeightInput.value = tempEditFood.weight;
+    
+    // Заповнюємо всі поля
+    editKcalInput.value = tempEditFood.kcal;
+    editProteinInput.value = tempEditFood.protein;
+    editFatInput.value = tempEditFood.fat;
+    editCarbsInput.value = tempEditFood.carbs;
+
+    renderJournalIngredients();
 
     editFoodModal.classList.remove('hidden');
     tg.HapticFeedback.impactOccurred('light');
 }
+
+// Якщо змінюємо ВАГУ страви -> перераховуємо ВСІ калорії і БЖВ
+editWeightInput.addEventListener('input', () => {
+    let newWeight = parseInt(editWeightInput.value) || 0;
+    let origWeight = tempEditFood.weight || 1;
+    let ratio = newWeight / origWeight;
+    
+    editKcalInput.value = Math.round(tempEditFood.kcal * ratio);
+    editProteinInput.value = Math.round(tempEditFood.protein * ratio);
+    editFatInput.value = Math.round(tempEditFood.fat * ratio);
+    editCarbsInput.value = Math.round(tempEditFood.carbs * ratio);
+});
+
+// Якщо користувач вручну змінить калорії/білки/жири/вуглеводи у відповідних полях, 
+// ми нічого автоматично не перераховуємо. Значення просто збережуться як є.
 
 document.getElementById('btn-close-edit-food').addEventListener('click', () => editFoodModal.classList.add('hidden'));
 
@@ -892,61 +959,73 @@ document.getElementById('btn-delete-food').addEventListener('click', () => {
 
 document.getElementById('btn-save-edit-food').addEventListener('click', () => {
     const dateStr = focusCurrentDate.toDateString();
-    const food = userData.foodHistory[dateStr].find(f => f.id === editingFoodId);
-    if (food) {
-        const newName = editNameInput.value.trim() || "Невідома страва";
-        const newWeight = parseInt(editWeightInput.value) || 0;
-        const newKcal = parseInt(editKcalInput.value) || 0;
-        const ratio = newKcal / (food.kcal || 1); 
+    const foodIndex = userData.foodHistory[dateStr].findIndex(f => f.id === editingFoodId);
+    if (foodIndex !== -1) {
+        let food = userData.foodHistory[dateStr][foodIndex];
         
-        food.name = newName;
-        food.weight = newWeight; 
-        food.kcal = newKcal; 
-        food.protein = Math.round(food.protein * ratio);
-        food.fat = Math.round(food.fat * ratio); 
-        food.carbs = Math.round(food.carbs * ratio);
+        const finalWeight = parseInt(editWeightInput.value) || 0;
+        const weightRatio = finalWeight / (tempEditFood.weight || 1);
+
+        food.name = editNameInput.value.trim() || "Невідома страва";
+        food.weight = finalWeight; 
+        
+        // Зберігаємо ТІ значення, які зараз написані в полях (ручні або автоматичні)
+        food.kcal = parseInt(editKcalInput.value) || 0; 
+        food.protein = parseInt(editProteinInput.value) || 0;
+        food.fat = parseInt(editFatInput.value) || 0; 
+        food.carbs = parseInt(editCarbsInput.value) || 0;
+        
+        // Пропорційно змінюємо калорії інгредієнтів тільки відносно ваги
+        food.ingredients = tempEditFood.ingredients.map(ing => ({
+            ...ing,
+            kcal: Math.round(ing.kcal * weightRatio)
+        }));
     }
     recalculateNutritionForSelectedDate(); renderFoodHistory(); syncFoodWithServer(); 
     editFoodModal.classList.add('hidden'); tg.HapticFeedback.notificationOccurred('success');
 });
 
-
-// --- ЛОГІКА РЕДАГУВАННЯ ОКРЕМИХ ІНГРЕДІЄНТІВ (ДО ЗБЕРЕЖЕННЯ) ---
-const editIngModal = document.getElementById('edit-ingredient-modal');
+// --- ЛОГІКА РЕДАГУВАННЯ ОДНОГО ІНГРЕДІЄНТА ---
+let currentIngContext = 'scanner'; 
 let editingIngIndex = null;
+const editIngModal = document.getElementById('edit-ingredient-modal');
 
-function openEditIngredientModal(index) {
+function openEditIngredientModal(index, context = 'scanner') {
+    currentIngContext = context;
     editingIngIndex = index;
-    let currentWeight = parseInt(weightInput.value) || 0;
-    let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
-
+    
     document.getElementById('btn-delete-ingredient').classList.remove('hidden');
     document.getElementById('edit-ingredient-title').innerText = "Редагувати інгредієнт";
 
+    let currentList = currentIngContext === 'scanner' ? baseIngredients : tempEditFood.ingredients;
+
     if (index === -1) {
-        // Додаємо новий інгредієнт
         document.getElementById('edit-ing-name').value = "";
         document.getElementById('edit-ing-portion').value = "";
         document.getElementById('edit-ing-kcal').value = "";
         document.getElementById('btn-delete-ingredient').classList.add('hidden');
         document.getElementById('edit-ingredient-title').innerText = "Додати інгредієнт";
     } else {
-        // Редагуємо існуючий
-        let ing = baseIngredients[index];
-        let scaledKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal;
+        let ing = currentList[index];
         document.getElementById('edit-ing-name').value = ing.name;
         document.getElementById('edit-ing-portion').value = ing.portion;
-        document.getElementById('edit-ing-kcal').value = scaledKcal;
+        
+        if (context === 'scanner') {
+            let currentWeight = parseInt(weightInput.value) || 0;
+            let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+            let scaledKcal = Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal;
+            document.getElementById('edit-ing-kcal').value = scaledKcal;
+        } else {
+            document.getElementById('edit-ing-kcal').value = ing.kcal;
+        }
     }
 
     editIngModal.classList.remove('hidden');
     tg.HapticFeedback.impactOccurred('light');
 }
 
-// Кнопка "+ Додати"
-document.getElementById('btn-add-new-ingredient').addEventListener('click', () => {
-    openEditIngredientModal(-1);
-});
+document.getElementById('btn-add-new-ingredient').addEventListener('click', () => openEditIngredientModal(-1, 'scanner'));
+document.getElementById('btn-add-journal-ingredient').addEventListener('click', () => openEditIngredientModal(-1, 'journal'));
 
 document.getElementById('btn-close-edit-ingredient').addEventListener('click', () => {
     editIngModal.classList.add('hidden');
@@ -955,46 +1034,66 @@ document.getElementById('btn-close-edit-ingredient').addEventListener('click', (
 document.getElementById('btn-save-edit-ingredient').addEventListener('click', () => {
     let newName = document.getElementById('edit-ing-name').value.trim() || "Інгредієнт";
     let newPortion = document.getElementById('edit-ing-portion').value.trim() || "1 порція";
-    let newScaledKcal = parseInt(document.getElementById('edit-ing-kcal').value) || 0;
+    let newKcal = parseInt(document.getElementById('edit-ing-kcal').value) || 0;
 
-    let currentWeight = parseInt(weightInput.value) || 0;
-    let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+    if (currentIngContext === 'scanner') {
+        let currentWeight = parseInt(weightInput.value) || 0;
+        let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+        let targetBaseKcal = Math.round(newKcal * (safeBaseWeight / (currentWeight || 1)));
 
-    // Вираховуємо "базові" калорії інгредієнта (щоб математика не ламалася при зміні загальної ваги)
-    let targetBaseKcal = Math.round(newScaledKcal * (safeBaseWeight / (currentWeight || 1)));
+        if (editingIngIndex === -1) {
+            baseIngredients.push({ name: newName, portion: newPortion, kcal: targetBaseKcal });
+            baseKcal += targetBaseKcal; 
+        } else {
+            let ing = baseIngredients[editingIngIndex];
+            let oldBaseKcal = ing.kcal;
+            ing.name = newName;
+            ing.portion = newPortion;
+            ing.kcal = targetBaseKcal;
+            baseKcal += (targetBaseKcal - oldBaseKcal); 
+        }
+        updateFoodUI();
 
-    if (editingIngIndex === -1) {
-        baseIngredients.push({ name: newName, portion: newPortion, kcal: targetBaseKcal });
-        baseKcal += targetBaseKcal; // Додаємо калорії до загальної суми страви
-    } else {
-        let ing = baseIngredients[editingIngIndex];
-        let oldBaseKcal = ing.kcal;
-        ing.name = newName;
-        ing.portion = newPortion;
-        ing.kcal = targetBaseKcal;
-        baseKcal += (targetBaseKcal - oldBaseKcal); // Коригуємо загальні калорії на різницю
+    } else if (currentIngContext === 'journal') {
+        if (editingIngIndex === -1) {
+            tempEditFood.ingredients.push({ name: newName, portion: newPortion, kcal: newKcal });
+            tempEditFood.kcal += newKcal;
+            editKcalInput.value = parseInt(editKcalInput.value) + newKcal;
+        } else {
+            let ing = tempEditFood.ingredients[editingIngIndex];
+            let diff = newKcal - ing.kcal;
+            ing.name = newName;
+            ing.portion = newPortion;
+            ing.kcal = newKcal;
+            tempEditFood.kcal += diff;
+            editKcalInput.value = parseInt(editKcalInput.value) + diff;
+        }
+        renderJournalIngredients();
     }
 
-    updateFoodUI();
     editIngModal.classList.add('hidden');
     tg.HapticFeedback.notificationOccurred('success');
 });
 
 document.getElementById('btn-delete-ingredient').addEventListener('click', () => {
     if (editingIngIndex !== -1 && editingIngIndex !== null) {
-        let ing = baseIngredients[editingIngIndex];
-        
-        // Зменшуємо загальні БЖВ пропорційно видаленим калоріям
-        let ratio = (baseKcal > 0) ? ((baseKcal - ing.kcal) / baseKcal) : 0;
-        if (ratio < 0) ratio = 0;
-        baseProtein = Math.round(baseProtein * ratio);
-        baseFat = Math.round(baseFat * ratio);
-        baseCarbs = Math.round(baseCarbs * ratio);
-
-        baseKcal = Math.max(0, baseKcal - ing.kcal);
-        baseIngredients.splice(editingIngIndex, 1);
-        
-        updateFoodUI();
+        if (currentIngContext === 'scanner') {
+            let ing = baseIngredients[editingIngIndex];
+            let ratio = (baseKcal > 0) ? ((baseKcal - ing.kcal) / baseKcal) : 0;
+            if (ratio < 0) ratio = 0;
+            baseProtein = Math.round(baseProtein * ratio);
+            baseFat = Math.round(baseFat * ratio);
+            baseCarbs = Math.round(baseCarbs * ratio);
+            baseKcal = Math.max(0, baseKcal - ing.kcal);
+            baseIngredients.splice(editingIngIndex, 1);
+            updateFoodUI();
+        } else if (currentIngContext === 'journal') {
+            let ing = tempEditFood.ingredients[editingIngIndex];
+            tempEditFood.kcal = Math.max(0, tempEditFood.kcal - ing.kcal);
+            editKcalInput.value = Math.max(0, parseInt(editKcalInput.value) - ing.kcal);
+            tempEditFood.ingredients.splice(editingIngIndex, 1);
+            renderJournalIngredients();
+        }
     }
     editIngModal.classList.add('hidden');
     tg.HapticFeedback.notificationOccurred('success');
