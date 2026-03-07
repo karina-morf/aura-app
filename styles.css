@@ -519,3 +519,137 @@ input:focus, select:focus, textarea:focus {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
+
+/* --- СТИЛІ КАМЕРИ (AURA SCANNER) --- */
+.camera-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none; /* Щоб кліки проходили крізь затемнення */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* Відступ знизу, щоб рамка була по центру над кнопками */
+    padding-bottom: 80px; 
+}
+
+.target-frame {
+    position: relative;
+    box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.65); /* Створює темний фон навколо рамки */
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Розміри рамок залежно від режиму */
+.camera-overlay.mode-food .target-frame { width: 250px; height: 250px; }
+.camera-overlay.mode-barcode .target-frame { width: 280px; height: 120px; }
+.camera-overlay.mode-label .target-frame { width: 250px; height: 350px; }
+
+/* Куточки рамки */
+.corner {
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    border-color: white;
+    border-style: solid;
+    transition: all 0.3s;
+}
+.tl { top: 0; left: 0; border-width: 3px 0 0 3px; border-top-left-radius: 16px; }
+.tr { top: 0; right: 0; border-width: 3px 3px 0 0; border-top-right-radius: 16px; }
+.bl { bottom: 0; left: 0; border-width: 0 0 3px 3px; border-bottom-left-radius: 16px; }
+.br { bottom: 0; right: 0; border-width: 0 3px 3px 0; border-bottom-right-radius: 16px; }
+
+#scan-hint-camera {
+    position: absolute;
+    top: -30px;
+    left: 0;
+    right: 0;
+    text-align: center;
+    color: white;
+    font-size: 13px;
+    font-weight: 500;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    transition: all 0.3s;
+}
+
+/* Кнопка галереї (зверху праворуч) */
+.gallery-fallback-btn {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    color: white;
+    cursor: pointer;
+    z-index: 20;
+}
+
+/* Нижня панель */
+.camera-bottom-controls {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 100%);
+    z-index: 20;
+}
+
+/* Чіпи перемикання режимів */
+.camera-modes {
+    display: flex;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    padding: 5px;
+    border-radius: 30px;
+}
+
+.camera-mode-chip {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.camera-mode-chip.active {
+    background: white;
+    color: black;
+}
+
+/* Кнопка спуску (зробити фото) */
+.capture-btn-container {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.capture-btn {
+    width: 54px;
+    height: 54px;
+    background: white;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: transform 0.1s;
+}
+
+.capture-btn:active {
+    transform: scale(0.9);
+}

@@ -131,22 +131,33 @@
             </div>
         </div>
 
-        <div id="scanner-upload-area" class="card" style="text-align: center; padding: 30px 20px; border: 2px dashed rgba(59, 130, 246, 0.4); background: rgba(59, 130, 246, 0.05); margin-top: 10px;">
-            <div class="avatar-placeholder" style="margin: 0 auto 15px; width: 70px; height: 70px; font-size: 26px; background: rgba(59, 130, 246, 0.2); border: none;">📸</div>
-            <h3 style="margin-bottom: 15px;">Що скануємо?</h3>
+        <div id="scanner-camera-area" style="position: relative; width: 100%; height: 60vh; border-radius: 24px; overflow: hidden; margin-top: 10px; background: #000;">
+            <video id="camera-video" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
             
-            <div id="scan-modes-container" style="display: flex; gap: 8px; justify-content: center; margin-bottom: 15px; flex-wrap: wrap;">
-                <div class="symptom-chip active" data-mode="food">🍲 Страва</div>
-                <div class="symptom-chip" data-mode="label">🧾 Етикетка</div>
-                <div class="symptom-chip" data-mode="barcode">⏸ Упаковка</div>
+            <div id="camera-overlay" class="camera-overlay mode-food">
+                <div class="target-frame">
+                    <span class="corner tl"></span>
+                    <span class="corner tr"></span>
+                    <span class="corner bl"></span>
+                    <span class="corner br"></span>
+                    <div id="scan-hint-camera">Наведи на страву</div>
+                </div>
             </div>
-            
-            <p id="scan-hint" style="color: var(--text-muted); font-size: 13px; margin-bottom: 25px; min-height: 36px;">ШІ проаналізує страву та розрахує порцію.</p>
-            
-            <label for="camera-input" class="btn-primary" style="display: flex; align-items: center; justify-content: center; box-sizing: border-box; cursor: pointer; margin-top: 0;">
-                📸 Відкрити камеру / галерею
-            </label>
+
+            <label for="camera-input" class="gallery-fallback-btn">🖼</label>
             <input type="file" id="camera-input" accept="image/*" style="display: none;">
+
+            <div class="camera-bottom-controls">
+                <div class="camera-modes" id="camera-scan-modes">
+                    <div class="camera-mode-chip active" data-mode="food">Сканувати</div>
+                    <div class="camera-mode-chip" data-mode="barcode">Штрихкод</div>
+                    <div class="camera-mode-chip" data-mode="label">Етикетка</div>
+                </div>
+                
+                <div class="capture-btn-container">
+                    <button id="btn-capture-photo" class="capture-btn"></button>
+                </div>
+            </div>
         </div>
 
         <div id="scanner-loading-area" class="card hidden" style="text-align: center;">

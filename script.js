@@ -608,150 +608,224 @@ document.querySelectorAll('#meal-tags-container .symptom-chip').forEach(chip => 
     });
 });
 
-document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(chip => {
+// --- ЛОГІКА ВБУДОВАНОЇ КАМЕРИ ---
+const videoElement = document.getElementById('camera-video');
+const cameraOverlay = document.getElementById('camera-overlay');
+const scanHintCamera = document.getElementById('scan-hint-camera');
+const cameraArea = document.getElementById('scanner-camera-area');
+const btnCapture = document.getElementById('btn-capture-photo');
+let cameraStream = null;
+
+// Функція увімкнення камери
+async function startCamera() {
+    if (cameraStream) return; // Вже працює
+    try {
+        // Просимо доступ до задньої камери
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: "environment" },
+            audio: false 
+        });
+        videoElement.srcObject = cameraStream;
+    } catch (err) {
+        console.error("Помилка доступу до камери: ", err);
+        // Якщо немає дозволу - залишаємо можливість завантажити з галереї
+        tg.showAlert("Дозволь доступ до камери, або завантаж фото з галереї (іконка зверху).");
+    }
+}
+
+// Функція вимкнення камери (щоб не садити батарею, коли переходимо на інші вкладки)
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+        videoElement.srcObject = null;
+    }
+}
+
+// Вмикаємо камеру, коли переходимо на вкладку "Фокус", і вимикаємо на інших
+navItems.forEach(item => {
+    item.addEventListener('click', () => {
+        const targetId = item.getAttribute('data-target');
+        if (targetId === 'scanner-screen') {
+            startCamera();
+        } else {
+            stopCamera();
+        }
+    });
+});
+
+// Перемикання режимів камери (зміна форми рамки)
+document.querySelectorAll('.camera-mode-chip').forEach(chip => {
     chip.addEventListener('click', () => {
-        document.querySelectorAll('#scan-modes-container .symptom-chip').forEach(c => c.classList.remove('active'));
+        document.querySelectorAll('.camera-mode-chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
         
         currentScanMode = chip.getAttribute('data-mode');
         tg.HapticFeedback.selectionChanged();
 
+        // Змінюємо клас рамки (CSS анімовано змінить розмір)
+        cameraOverlay.className = `camera-overlay mode-${currentScanMode}`;
+
         if (currentScanMode === 'food') {
-            scanHint.innerText = "ШІ проаналізує страву та розрахує порцію.";
+            scanHintCamera.innerText = "Наведи на страву";
         } else if (currentScanMode === 'label') {
-            scanHint.innerText = "Сфотографуй таблицю КБЖВ на етикетці (ШІ знайде дані на 100г).";
+            scanHintCamera.innerText = "Наведи на таблицю КБЖВ";
         } else if (currentScanMode === 'barcode') {
-            scanHint.innerText = "Сфотографуй штрихкод або упаковку продукту.";
+            scanHintCamera.innerText = "Наведи на штрихкод";
         }
     });
 });
 
-function renderFoodHistory() {
-    const list = document.getElementById('food-history-list');
-    list.innerHTML = ''; 
-    const dateStr = focusCurrentDate.toDateString();
-    const logs = userData.foodHistory[dateStr] || [];
+// Обробка натискання на кнопку "Зробити фото"
+btnCapture.addEventListener('click', () => {
+    if (!cameraStream) return;
+    tg.HapticFeedback.impactOccurred('medium');
+    
+    // Створюємо тимчасовий canvas, щоб "сфотографувати" кадр з відео
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    
+    // Отримуємо base64 (зменшуємо якість для швидкості)
+    const base64Full = canvas.toDataURL('image/jpeg', 0.7);
+    
+    // Передаємо фото в аналізатор
+    processCapturedImage(base64Full);
+});
 
-    if (logs.length === 0) {
-        list.innerHTML = `
-            <div style="text-align: center; padding: 20px; background: rgba(255,255,255,0.02); border-radius: 16px; border: 1px dashed rgba(255,255,255,0.1);">
-                <span style="font-size: 24px; display: block; margin-bottom: 5px;">🍽</span>
-                <p style="color: var(--text-muted); font-size: 13px; margin: 0;">Поки що нічого не додано.<br>Відскануй свою першу страву!</p>
-            </div>
-        `;
-        return;
-    }
+// Обробка завантаження з галереї (резервний варіант)
+if (cameraInput) {
+    cameraInput.addEventListener('change', function(event) {
+        const file = event.target.files[0];
+        if (!file) return;
 
-    logs.forEach(food => {
-        let div = document.createElement('div');
-        div.className = 'card';
-        div.style.padding = '15px'; div.style.display = 'flex'; div.style.justifyContent = 'space-between'; div.style.alignItems = 'center'; div.style.cursor = 'pointer'; div.style.border = '1px solid rgba(255,255,255,0.05)';
-
-        div.innerHTML = `
-            <div>
-                <h4 style="margin: 0 0 4px 0; font-size: 16px;">${food.name}</h4>
-                <div style="display: flex; gap: 8px; align-items: center;">
-                    <span style="font-size: 10px; background: rgba(59,130,246,0.2); color: #3B82F6; padding: 2px 6px; border-radius: 6px;">${food.meal}</span>
-                    <span style="font-size: 12px; color: var(--text-muted);">${food.weight} г • ${food.protein}Б / ${food.fat}Ж / ${food.carbs}В</span>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <span class="highlight-number" style="font-size: 20px;">${food.kcal}</span>
-                <span style="font-size: 10px; color: var(--text-muted); display: block;">ккал</span>
-            </div>
-        `;
-        div.addEventListener('click', () => openEditFoodModal(food.id));
-        list.appendChild(div);
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = e => {
+            const img = new Image();
+            img.src = e.target.result;
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800; 
+                const scaleSize = MAX_WIDTH / img.width;
+                canvas.width = MAX_WIDTH;
+                canvas.height = img.height * scaleSize;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                processCapturedImage(canvas.toDataURL('image/jpeg', 0.7));
+            };
+        };
     });
 }
 
-function syncFoodWithServer() {
-    const dateStr = focusCurrentDate.toDateString();
-    const logs = userData.foodHistory[dateStr] || [];
-    let dailySum = logs.reduce((sum, f) => sum + f.kcal, 0);
-
+// Загальна функція відправки фото на сервер
+function processCapturedImage(base64String) {
+    cameraArea.classList.add('hidden'); // Ховаємо камеру
+    stopCamera(); // Вимикаємо трансляцію
+    loadingArea.classList.remove('hidden'); 
+    
+    foodPreview.src = base64String; 
+    const b64Data = base64String.split(',')[1]; 
+    baseIngredients = [];
+    
     sendToServer({ 
-        action: "log_food", 
-        userId: currentUserId, 
-        dateStr: focusCurrentDate.toISOString(), 
-        consumedKcal: dailySum,
-        foodLog: JSON.stringify(logs)
-    }).catch(e => console.error(e));
+        action: "analyze_food", 
+        imageB64: b64Data,
+        scanMode: currentScanMode
+    })
+    .then(res => {
+        if (res.status === 'success') {
+            baseWeight = res.data.weight || 150;
+            baseKcal = res.data.kcal || 0;
+            baseProtein = res.data.protein || 0;
+            baseFat = res.data.fat || 0;
+            baseCarbs = res.data.carbs || 0;
+            baseIngredients = res.data.ingredients || [];
+            
+            document.getElementById('food-name').innerText = res.data.name || "Невідома страва";
+            weightInput.value = baseWeight;
+            
+            updateFoodUI();
+            
+            loadingArea.classList.add('hidden');
+            resultArea.classList.remove('hidden');
+            tg.HapticFeedback.notificationOccurred('success');
+        } else {
+            alert("Помилка розпізнавання: " + res.message);
+            resetScanner();
+        }
+    }).catch(err => {
+        alert("Помилка з'єднання з сервером.");
+        resetScanner();
+    });
 }
 
-const cameraInput = document.getElementById('camera-input');
-const uploadArea = document.getElementById('scanner-upload-area');
-const loadingArea = document.getElementById('scanner-loading-area');
-const resultArea = document.getElementById('scanner-result-area');
-const foodPreview = document.getElementById('food-preview');
-const btnRetakePhoto = document.getElementById('btn-retake-photo');
-const btnAddFood = document.getElementById('btn-add-food');
-const weightInput = document.getElementById('food-weight-input');
+// Функція для повернення до камери, якщо натиснули "Інше фото"
+function resetScanner() {
+    resultArea.classList.add('hidden'); 
+    loadingArea.classList.add('hidden');
+    cameraArea.classList.remove('hidden'); 
+    cameraInput.value = ''; 
+    startCamera(); // Знову вмикаємо камеру
+}
 
-let baseWeight = 150; let baseKcal = 0; let baseProtein = 0; let baseFat = 0; let baseCarbs = 0;
-let baseIngredients = []; 
+// Оновлюємо дію кнопки "Інше фото"
+if (btnRetakePhoto) {
+    btnRetakePhoto.addEventListener('click', () => {
+        resetScanner();
+        tg.HapticFeedback.selectionChanged();
+    });
+}
 
-function compressImageAndSend(file) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = event => {
-        foodPreview.src = event.target.result; 
-        
-        const img = new Image();
-        img.src = event.target.result;
-        img.onload = () => {
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800; 
-            const scaleSize = MAX_WIDTH / img.width;
-            canvas.width = MAX_WIDTH;
-            canvas.height = img.height * scaleSize;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-            
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-            const b64Data = compressedBase64.split(',')[1]; 
-            
-            baseIngredients = [];
-            
-            sendToServer({ 
-                action: "analyze_food", 
-                imageB64: b64Data,
-                scanMode: currentScanMode
-            })
-            .then(res => {
-                if (res.status === 'success') {
-                    baseWeight = res.data.weight || 150;
-                    baseKcal = res.data.kcal || 0;
-                    baseProtein = res.data.protein || 0;
-                    baseFat = res.data.fat || 0;
-                    baseCarbs = res.data.carbs || 0;
-                    
-                    baseIngredients = res.data.ingredients || [];
-                    
-                    document.getElementById('food-name').innerText = res.data.name || "Невідома страва";
-                    weightInput.value = baseWeight;
-                    
-                    updateFoodUI();
-                    
-                    loadingArea.classList.add('hidden');
-                    resultArea.classList.remove('hidden');
-                    tg.HapticFeedback.notificationOccurred('success');
-                } else {
-                    alert("Помилка розпізнавання: " + res.message);
-                    loadingArea.classList.add('hidden');
-                    uploadArea.classList.remove('hidden');
-                    cameraInput.value = '';
-                }
-            }).catch(err => {
-                alert("Помилка з'єднання з сервером.");
-                loadingArea.classList.add('hidden');
-                uploadArea.classList.remove('hidden');
-                cameraInput.value = '';
-            });
+// Також оновлюємо дію кнопки "Додати в Журнал", щоб після додавання повертало камеру
+if (btnAddFood) {
+    btnAddFood.addEventListener('click', () => {
+        // ... (твоя попередня логіка збереження залишається без змін) ...
+        const dateStr = focusCurrentDate.toDateString();
+        if(!userData.foodHistory[dateStr]) userData.foodHistory[dateStr] = [];
+
+        let currentWeight = parseInt(weightInput.value) || 0;
+        let safeBaseWeight = baseWeight > 0 ? baseWeight : 1; 
+
+        let scaledIngredients = baseIngredients.map(ing => {
+            return {
+                name: ing.name,
+                portion: ing.weight ? ing.weight + ' г' : ing.portion,
+                weight: ing.weight || 0,
+                protein: ing.protein || 0,
+                fat: ing.fat || 0,
+                carbs: ing.carbs || 0,
+                kcal: Math.round((ing.kcal / safeBaseWeight) * currentWeight) || ing.kcal
+            };
+        });
+
+        const newFood = {
+            id: Date.now(), 
+            name: document.getElementById('food-name').innerText,
+            weight: currentWeight,
+            kcal: parseInt(document.getElementById('food-kcal').innerText) || 0,
+            protein: parseInt(document.getElementById('food-protein').innerText) || 0,
+            fat: parseInt(document.getElementById('food-fat').innerText) || 0,
+            carbs: parseInt(document.getElementById('food-carbs').innerText) || 0,
+            meal: selectedMealTag,
+            ingredients: scaledIngredients 
         };
-    };
+        
+        userData.foodHistory[dateStr].push(newFood);
+        
+        recalculateNutritionForSelectedDate(); 
+        renderFoodHistory(); 
+        syncFoodWithServer(); 
+        
+        // Ось тут зміни: повертаємося до сканера
+        resetScanner();
+        
+        document.getElementById('food-history-container').scrollIntoView({behavior: "smooth"});
+        tg.HapticFeedback.notificationOccurred('success');
+    });
 }
-
 if (cameraInput) {
     cameraInput.addEventListener('change', function(event) {
         const file = event.target.files[0];
